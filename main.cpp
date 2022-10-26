@@ -1,7 +1,6 @@
 #include <ncurses.h>
 #include <string>
 #include <cstdlib>
-#include <ctime>
 #include <iostream>
 #include "Game.hpp"
 
@@ -60,22 +59,37 @@ void createWindows(int yMax,int xMax){
 }
 
 int gameLoop(Game * m){
-    int mNum=-2;
+    int mNum=-1;
     //-2 is main menu, -1 is sub menu, 0+ is a selection.
     do{
-        do{
-            m->display();
-            refreshWindows();
-            mNum = m->getmv();
-        }while(mNum == -2);
-        
-        m->prepSubMenu();
+        m->display();
+        refreshWindows();
 
-        do{
+        while(mNum == -1){
+            m->display();
+            refreshWindows(); 
+            mNum = m->getmv();
+        }
+
+        if(mNum == -2){
+            m->prepSubMenu();
+        }
+        
+        while(mNum == -2){
             m->display();
             refreshWindows();
             mNum = m->mgetmv();
-        }while(mNum == -1);
+        }
+        
+        if(mNum ==-3){
+            m->prepInputMenu();
+        }
+
+        while(mNum == -3){
+            m->display();
+            refreshWindows();
+            mNum = m->imgetmv();
+        }
     }while(mNum < 0);
     
 
@@ -96,7 +110,7 @@ int main(void){
     //create Windows
     createWindows(yMax,xMax);
     
-    Game * m = new Game(mmWin,smWin,rWin);
+    Game * m = new Game(mmWin,smWin,rWin,iWin);
     
     gameLoop(m);
 

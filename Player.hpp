@@ -1,10 +1,19 @@
+
 #ifndef _PLAYER_H_
 #define _PLAYER_H_
-using namespace std;
+#include "Building.hpp"
+#include "Troops.hpp"
+#include "Buildings_Types.hpp"
+#include <vector>
+
+using std::vector;
+
 
 class Player
 {
 private:
+    int x,y; //coords
+    int health; // hp of Village
     struct{
         int wood =10;
         int stone =10;
@@ -12,8 +21,14 @@ private:
         int food =3;
         int size = 4;
     }res;
+
+    vector<Building> ResBuildings = {WoodCutter(0,1),StoneMiner(0,1),IronMiner(0,1)};
+    vector<Building> TroBuildings = {ArcheryRange(0,1),KnightingPalace(0,1),DefenderBarracks(0,1)};
+    BattleTrainer * battletrainer;
+
 public:
     Player(/* args */);
+    ~Player();
     int getWood();
     int getIron();
     int getStone();
@@ -23,6 +38,11 @@ public:
 
 Player::Player(/* args */)
 {
+    battletrainer = new BattleTrainer(0,1);
+}
+Player::~Player(/* args */)
+{
+    delete battletrainer;
 }
 
 int Player::getWood(){
@@ -44,6 +64,8 @@ int Player::getFood(){
 int Player::getResSize(){
     return res.size;
 }
+
+
 
 
 
