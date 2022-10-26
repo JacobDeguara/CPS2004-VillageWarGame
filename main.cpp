@@ -3,7 +3,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <iostream>
-#include "Map.h"
+#include "Game.hpp"
 
 using namespace std;
 
@@ -59,7 +59,7 @@ void createWindows(int yMax,int xMax){
         keypad(mapWin,true);
 }
 
-int gameLoop(Map * m){
+int gameLoop(Game * m){
     int mNum=-2;
     //-2 is main menu, -1 is sub menu, 0+ is a selection.
     do{
@@ -96,11 +96,12 @@ int main(void){
     //create Windows
     createWindows(yMax,xMax);
     
-    Map * m = new Map(mmWin,smWin,rWin);
+    Game * m = new Game(mmWin,smWin,rWin);
     
     gameLoop(m);
 
     cout << m->getHighlight() << "   " << m->getHighlight2();
+    delete m;
     endwin();
 	return 0;
 }
