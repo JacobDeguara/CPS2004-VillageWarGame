@@ -23,7 +23,7 @@ void refreshWindows(){
 void createWindows(int yMax,int xMax){
     //windows Created    
         //resourse window
-        rWin = newwin(yMax*5/8,xMax*3/8,0,0); 
+        rWin = newwin(yMax*5/8,xMax*7/16,0,0); 
         box(rWin,0,0); //create box
         refresh();
         wrefresh(rWin);
@@ -51,7 +51,7 @@ void createWindows(int yMax,int xMax){
         keypad(iWin,true);
 
         //Map Window
-        mapWin = newwin(yMax*5/8,xMax*5/8,0,xMax*3/8); //new window
+        mapWin = newwin(yMax*5/8,xMax*9/16,0,xMax*7/16); //new window
         box(mapWin,0,0); //create box
         refresh();
         wrefresh(mapWin);
@@ -110,11 +110,10 @@ int main(void){
     //create Windows
     createWindows(yMax,xMax);
     
-    Game * m = new Game(mmWin,smWin,rWin,iWin);
+    Game * m = new Game(1,mmWin,smWin,rWin,iWin);
     
     gameLoop(m);
 
-    cout << m->getHighlight() << "   " << m->getHighlight2();
     delete m;
     endwin();
 	return 0;

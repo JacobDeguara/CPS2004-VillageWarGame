@@ -7,76 +7,118 @@ class WoodCutter: public Building
 private:
     
 public:
-    WoodCutter(int amount,int level);
-    
+    WoodCutter();
+    int RoundEnd();
 };
 
-WoodCutter::WoodCutter(int amount,int level) :Building(amount,level){}
+WoodCutter::WoodCutter() :Building(){};
 
+int WoodCutter::RoundEnd()
+{
+    return (amount*2)+(amount*level);
+}
+
+/*---------------------------*/
 class StoneMiner: public Building
 {
 private:
     
 public:
-    StoneMiner(int amount,int level);
-    
+    StoneMiner();
+    int RoundEnd();
 };
 
-StoneMiner::StoneMiner(int amount,int level) :Building(amount,level){}
+StoneMiner::StoneMiner() :Building(){};
 
+int StoneMiner::RoundEnd()
+{
+    return (amount*2)+(amount*level);
+}
+
+/*---------------------------*/
 class IronMiner: public Building
 {
 private:
     
 public:
-    IronMiner(int amount,int level);
-    
+    IronMiner();
+    int RoundEnd();
 };
 
-IronMiner::IronMiner(int amount,int level) :Building(amount,level){}
+IronMiner::IronMiner() :Building(){};
 
+int IronMiner::RoundEnd()
+{
+    return (amount*2)+(amount*level);
+}
+
+/*---------------------------*/
 class BattleTrainer : public Building
 {
 private:
     
 public:
-    BattleTrainer(int amount,int level);
-    
+    BattleTrainer();
+    int RoundEnd();
 };
 
-BattleTrainer::BattleTrainer(int amount,int level) :Building(amount,level){}
+BattleTrainer::BattleTrainer() :Building(){};
 
+int BattleTrainer::RoundEnd()
+{
+    return (amount)+(amount*level);
+}
+
+/*---------------------------*/
 class ArcheryRange : public Building
 {
 private:
     
 public:
-    ArcheryRange(int amount,int level);
-    
+    ArcheryRange();
+    int RoundEnd();
 };
 
-ArcheryRange::ArcheryRange(int amount,int level) :Building(amount,level){}
+ArcheryRange::ArcheryRange() :Building(){};
 
+int ArcheryRange::RoundEnd()
+{
+    return (amount)+(level);
+}
+
+/*---------------------------*/
 class KnightingPalace: public Building
 {
 private:
     
 public:
-    KnightingPalace(int amount,int level);
-    
+    KnightingPalace();
+    int RoundEnd();
 };
 
-KnightingPalace::KnightingPalace(int amount,int level) :Building(amount,level){}
+KnightingPalace::KnightingPalace() :Building(){};
 
+int KnightingPalace::RoundEnd()
+{
+    return (amount)+(level);
+}
+
+/*---------------------------*/
 class DefenderBarracks: public Building
 {
 private:
     
 public:
-    DefenderBarracks(int amount,int level);
-    
+    DefenderBarracks();
+    int RoundEnd();
 };
 
-DefenderBarracks::DefenderBarracks(int amount,int level) :Building(amount,level){}
+DefenderBarracks::DefenderBarracks() :Building(){};
+
+int DefenderBarracks::RoundEnd()
+{
+    return (amount)+(level);
+}
+
 
 #endif
