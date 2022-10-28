@@ -26,27 +26,26 @@ private:
     }choices[4];
     int count=1;
     void choicesCreation(); //this is used for formulating the strings for Choice
+    void costCreation(int wood,int stone,int iron,int food); // this is used to formulate the cost for display
     vector<Player> p;
     int playerNum;
     int wood,stone,iron,food; //this represents the cost of the respective selelected type
 public:
 
-    //constuctor
-    Game(int NumOfPlayers,WINDOW * menuWindow, WINDOW * submenuWindow, WINDOW * resourceWindow,WINDOW * inputWindow);
-    
-    //setters
+    /*constuctor*/
+    Game(int NumOfPlayers,WINDOW * menuWindow, WINDOW * submenuWindow, WINDOW * resourceWindow,WINDOW * inputWindow); //constuctor
 
-    //display
-    int getmv();
-    int mgetmv();
-    int imgetmv();
-    void display();
-    void prepSubMenu();
-    void prepInputMenu();
-
-    //game mannigment 
-    bool actionTaken();
+    /*display*/
+    int getmv(); // get move menu 
+    int mgetmv(); // get move sub menu
+    int imgetmv(); // get move input menu
+    void display(); // display Windows
+    void prepSubMenu(); // prepare the sub menu (needed before mgetmv())
+    void prepInputMenu(); // prepare the input menu (needed before imgetmv())
+    void resetMenu(); //resets the menu system
     
+    int actionTaken(); // will take the selected action and run it
+    void endRound();
 };
 
 Game::Game(int NumOfPlayers,WINDOW * menuWindow, WINDOW * submenuWindow, WINDOW * resourceWindow,WINDOW * inputWindow){
@@ -83,6 +82,13 @@ void Game::choicesCreation(){
     string str3[] = {"> Attack           ","> Skip             ","> Surrender        "};
     choices[3].smNames.assign(str3,str3+3);
     choices[3].choiceSize = 3;
+}
+
+void Game::costCreation(int wood,int stone,int iron,int food){
+    this->wood = wood*count * (p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
+    this->stone = stone*count *(p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
+    this->iron = iron*count * (p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
+    this->food = food*count * (p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
 }
 
 // get choice changes for main menu
@@ -197,6 +203,13 @@ int Game::imgetmv(){
     return -2;
 }
 
+void Game::resetMenu(){
+    highlight = 0;
+    highlight2 = -1;
+    highlight3 = -1;
+    count = 1;
+}
+
 void Game::display(){
     const char * str; 
     //menu window  
@@ -236,18 +249,12 @@ void Game::display(){
     if(highlight != 3){
         switch(highlight2){
             case 0:
-                if(highlight==0){                                                                                   //create wood cutter
-                    wood = 2*count * (p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
-                    stone = 2*count *(p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
-                    iron = 0*count * (p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
-                    food = 0*count * (p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
+                if(highlight==0){  
+                    costCreation(2,2,0,0);                                                                                 //create wood cutter
                     mvwprintw(inwin,1,1,"Creates Wood             ");
                     mvwprintw(inwin,2,1,"Wood: %d , Stone: %d , Iron: %d , Food %d         ",wood,stone,iron,food);
                 }else if(highlight==1){                                                                             // Upgrade wood cutter
-                    wood = 2*count * (p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
-                    stone = 2*count *(p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
-                    iron = 2*count * (p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
-                    food = 1*count * (p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
+                    costCreation(2,2,2,1);
                     mvwprintw(inwin,1,1,"Upgrading the Wood Cutter");
                     mvwprintw(inwin,2,1,"Wood: %d , Stone: %d , Iron: %d , Food %d         ",wood,stone,iron,food);
                 }else if(highlight ==2){                                                                            // Archer troop
@@ -260,18 +267,12 @@ void Game::display(){
                 }
                 break;
             case 1:
-                if(highlight==0){                                                                                   //create stone miner
-                    wood = 2*count * (p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
-                    stone = 0*count *(p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
-                    iron = 2*count * (p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
-                    food = 0*count * (p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
+                if(highlight==0){ 
+                    costCreation(2,0,2,0);//create stone miner
                     mvwprintw(inwin,1,1,"Creates Stone            ");
                     mvwprintw(inwin,2,1,"Wood: %d , Stone: %d , Iron: %d , Food %d         ",wood,stone,iron,food);
-                }else if(highlight==1){                                                                             // Upgrade stone miner
-                    wood = 3*count * (p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
-                    stone = 0*count *(p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
-                    iron = 3*count * (p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
-                    food = 1*count * (p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
+                }else if(highlight==1){// Upgrade stone miner
+                    costCreation(3,0,3,1);
                     mvwprintw(inwin,1,1,"Upgrade Stone Miner      ");
                     mvwprintw(inwin,2,1,"Wood: %d , Stone: %d , Iron: %d , Food %d         ",wood,stone,iron,food);
                 }else if(highlight ==2){                                                                            // Knight troop
@@ -284,18 +285,12 @@ void Game::display(){
                 }
                 break;    
             case 2:
-                if(highlight==0){                                                                                   //create iron miner
-                    wood = 3*count * (p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
-                    stone = 2*count *(p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
-                    iron = 0*count * (p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
-                    food = 0*count * (p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
+                if(highlight==0){
+                    costCreation(3,2,0,0);                                                                                 //create iron miner
                     mvwprintw(inwin,1,1,"Creates Iron             ");
                     mvwprintw(inwin,2,1,"Wood: %d , Stone: %d , Iron: %d , Food %d         ",wood,stone,iron,food);
                 }else if(highlight==1){                                                                             // Upgrade iron miner
-                    wood = 3*count * (p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
-                    stone = 3*count *(p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
-                    iron = 0*count * (p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
-                    food = 1*count * (p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
+                    costCreation(3,3,0,1);
                     mvwprintw(inwin,1,1,"Upgrade the Iron Miner   ");
                     mvwprintw(inwin,2,1,"Wood: %d , Stone: %d , Iron: %d , Food %d         ",wood,stone,iron,food);
                 }else if(highlight ==2){                                                                            // defender troop
@@ -309,68 +304,44 @@ void Game::display(){
                 break;
             case 3:
                 if(highlight==0){                                                                                   //create Battle Trainer
-                    wood = 2*count * (p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
-                    stone = 2*count *(p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
-                    iron = 2*count * (p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
-                    food = 0*count * (p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
+                    costCreation(2,2,2,0);
                     mvwprintw(inwin,1,1,"Creates Food             ");
                     mvwprintw(inwin,2,1,"Wood: %d , Stone: %d , Iron: %d , Food %d         ",wood,stone,iron,food);
                 }else if(highlight==1){                                                                             // Upgrade Battle Trainer
-                    wood = 2*count * (p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
-                    stone = 2*count *(p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
-                    iron = 2*count * (p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
-                    food = 0*count * (p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
+                    costCreation(2,2,2,0);
                     mvwprintw(inwin,1,1,"Upgrade the BattleTower  ");
                     mvwprintw(inwin,2,1,"Wood: %d , Stone: %d , Iron: %d , Food %d         ",wood,stone,iron,food);
                 }
                 break;
             case 4:
                 if(highlight==0){                                                                                   //create Archer place
-                    wood = 2*count * (p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
-                    stone = 2*count *(p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
-                    iron = 0*count * (p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
-                    food = 2*count * (p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
+                    costCreation(2,2,0,2);
                     mvwprintw(inwin,1,1,"Creates Archers          ");
                     mvwprintw(inwin,2,1,"Wood: %d , Stone: %d , Iron: %d , Food %d         ",wood,stone,iron,food);
-                }else if(highlight==1){                                                                             // Upgrade Archer place
-                    wood = 2*count * (p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
-                    stone = 0*count *(p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
-                    iron = 2*count * (p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
-                    food = 1*count * (p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
+                }else if(highlight==1){  
+                    costCreation(2,0,2,1);                                                                           // Upgrade Archer place
                     mvwprintw(inwin,1,1,"Upgrade The Range        ");
                     mvwprintw(inwin,2,1,"Wood: %d , Stone: %d , Iron: %d , Food %d         ",wood,stone,iron,food);
                 }
                 break;            
             case 5:
-                if(highlight==0){                                                                                   //create Knight place
-                    wood = 1*count * (p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
-                    stone = 1*count *(p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
-                    iron = 1*count * (p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
-                    food = 2*count * (p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
+                if(highlight==0){  
+                    costCreation(1,1,1,2);                                                                                 //create Knight place
                     mvwprintw(inwin,1,1,"Creates Knights          ");
                     mvwprintw(inwin,2,1,"Wood: %d , Stone: %d , Iron: %d , Food %d         ",wood,stone,iron,food);
                 }else if(highlight==1){                                                                             // Upgrade Knight place
-                    wood = 1*count * (p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
-                    stone = 1*count *(p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
-                    iron = 1*count * (p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
-                    food = 1*count * (p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
+                    costCreation(1,1,1,1);
                     mvwprintw(inwin,1,1,"Upgrades The Palace      ");
                     mvwprintw(inwin,2,1,"Wood: %d , Stone: %d , Iron: %d , Food %d         ",wood,stone,iron,food);
                 }
                 break;
             case 6:
-                if(highlight==0){                                                                                   //create Defender place
-                    wood = 1*count * (p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
-                    stone = 1*count *(p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
-                    iron = 1*count * (p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
-                    food = 3*count * (p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
+                if(highlight==0){   
+                    costCreation(1,1,1,3);                                                                                //create Defender place
                     mvwprintw(inwin,1,1,"Creates Defenders        ");
                     mvwprintw(inwin,2,1,"Wood: %d , Stone: %d , Iron: %d , Food %d         ",wood,stone,iron,food);
                 }else if(highlight==1){                                                                             // Upgrade Defender place
-                    wood = 1*count * (p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
-                    stone = 2*count *(p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
-                    iron = 1*count * (p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
-                    food = 1*count * (p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel()); 
+                    costCreation(1,2,1,1);
                     mvwprintw(inwin,1,1,"Upgrades the Barackes    ");
                     mvwprintw(inwin,2,1,"Wood: %d , Stone: %d , Iron: %d , Food %d         ",wood,stone,iron,food);
                 }
@@ -435,19 +406,19 @@ void Game::display(){
         int num;
         switch(i){
             case 0:
-                str = "Wood  >";
+                str = "Wood : ";
                 num = p[playerNum].getWood();
                 break;
             case 1:
-                str = "Stone >";
+                str = "Stone: ";
                 num = p[playerNum].getStone();
                 break;
             case 2:
-                str = "Iron  >";
+                str = "Iron : ";
                 num = p[playerNum].getIron();
                 break;
             case 3:
-                str = "Food  >";
+                str = "Food : ";
                 num = p[playerNum].getFood();
                 break;
             case 4:
@@ -465,7 +436,7 @@ void Game::display(){
         str = choices[0].smNames[i].data();
         num1 = p[playerNum].Buildings[i].getamount();
         num2 = p[playerNum].Buildings[i].getLevel();
-        mvwprintw(reswin,i+2+p[playerNum].getResSize(),1,"%s: %d=>level:%d gen:%d",str,num1,num2,p[playerNum].Buildings[i].RoundEnd());
+        mvwprintw(reswin,i+2+p[playerNum].getResSize(),1,"%s: Qty:%d Lvl:%d Gen:%d",str,num1,num2,p[playerNum].getGen(i));
     }
 
     mvwprintw(reswin,9+p[playerNum].getResSize(),1,"Troops:");
@@ -476,10 +447,39 @@ void Game::display(){
         num1 = p[playerNum].troops[i].getAmount();
         num2 = p[playerNum].troops[i].getLevel();
         num3 = p[playerNum].troops[i].getPowerRating();
-        mvwprintw(reswin,i+10+p[playerNum].getResSize(),1,"%s: %d=>level:%d Pow.R:%d",str,num1,num2,num3);
+        mvwprintw(reswin,i+10+p[playerNum].getResSize(),1,"%s: Qty:%d Lvl:%d Power:%d",str,num1,num2,num3);
     }
     
 }
 
+/* > Runs the action selected
+* if unsuccessfull returns false (0)
+* if successfull returns true(1)
+* if want to exit (surrender) returns exit(-1)
+*/
+int Game::actionTaken(){  
+    if(highlight == 0){ //create Building
+        return p[playerNum].increaseBuilding(count,highlight2,wood,stone,iron,food);
+    }else if(highlight == 1){//upgrade building
+        return p[playerNum].upgradeBuilding(count,highlight2,wood,stone,iron,food);
+    }else if(highlight == 2){//upgrade troops   
+        return p[playerNum].upgradeTroops(count,highlight2,wood,stone,iron,food);
+    }else if(highlight == 3){//actions
+        if(highlight2==0){ //action
+            //attack protocall
+            return 0;
+        }else if(highlight2 ==1){ //
+            //skipp protocall
+            return 1;
+        }else if(highlight2 ==2){  
+            //surrender protocall
+            return -1;
+        }
+    }
+    return false;
+}
 
+void Game::endRound(){
+    p[playerNum].RoundEnd();
+}
 #endif

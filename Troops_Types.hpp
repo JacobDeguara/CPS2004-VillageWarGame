@@ -5,43 +5,32 @@
 class Archer: public Troops
 {
 private:
-    int health = 5;
-    int damage = 10;
-    int acc = 5;
-    int carryingCapacity = 15;
 public:
-    Archer(); 
+    Archer(int health,int damage,int acc,int carryingCapacity); 
 };
 
-Archer::Archer(): Troops(health ,damage ,acc,carryingCapacity){
+Archer::Archer(int health,int damage,int acc,int carryingCapacity): Troops(health ,damage ,acc,carryingCapacity){
 };
 
 class Knight : public Troops
 {
 private:
-    int health = 10;
-    int damage = 5;
-    int acc = 8;
-    int carryingCapacity = 10;
 public:
-    Knight();
+    Knight(int health,int damage,int acc,int carryingCapacity);
 };
 
-Knight::Knight(): Troops(health ,damage ,acc,carryingCapacity) {};
+Knight::Knight(int health,int damage,int acc,int arryingCapacity): Troops(health ,damage ,acc,carryingCapacity) {};
 
 class Defender : public Troops
 {
 private:
-    int health = 20;
-    int damage = 4;
-    int acc = 9;
-    int carryingCapacity = 5;
 public:
-    Defender(/* args */);
-    
+    Defender(int health,int damage,int acc,int carryingCapacity);
+    void upgrade(int num);
 };
 
-Defender::Defender(/* args */): Troops(health ,damage ,acc,carryingCapacity) {};
+Defender::Defender(int health,int damage,int acc,int carryingCapacity): Troops(health ,damage ,acc,carryingCapacity) {}
+
 
 
 

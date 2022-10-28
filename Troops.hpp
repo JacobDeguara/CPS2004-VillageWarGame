@@ -14,7 +14,6 @@ public:
     int getDamage();
     int getPowerRating();
     void setAmount(int amount);
-    void setLevel(int level);
     
 protected:
     unsigned int amount = 0;
@@ -36,6 +35,9 @@ Troops::Troops(int health ,int damage ,int acc,int CC)
 
 void Troops::upgrade(int num){
     level += num;
+    health += num;
+    damage += num;
+    carryingCapacity += num;
 }
 
 void Troops::add(int num){
@@ -76,15 +78,5 @@ void Troops::setAmount(int amount)
 {
     this->amount = amount;
 }
-
-void Troops::setLevel(int level)
-{
-    this->level = level;
-}
-
-
-
-
-
 
 #endif

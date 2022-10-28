@@ -8,15 +8,15 @@ private:
     
 public:
     WoodCutter();
-    int RoundEnd();
+    int getGen();
 };
 
-WoodCutter::WoodCutter() :Building(){};
+WoodCutter::WoodCutter() :Building(){}
 
-int WoodCutter::RoundEnd()
+int WoodCutter::getGen()
 {
-    return (amount*2)+(amount*level);
-}
+    return amount*2 + amount*level;
+};
 
 /*---------------------------*/
 class StoneMiner: public Building
@@ -25,15 +25,15 @@ private:
     
 public:
     StoneMiner();
-    int RoundEnd();
+    int getGen();
 };
 
-StoneMiner::StoneMiner() :Building(){};
+StoneMiner::StoneMiner() :Building(){}
 
-int StoneMiner::RoundEnd()
+int StoneMiner::getGen()
 {
-    return (amount*2)+(amount*level);
-}
+    return amount*2 + amount*level;
+};
 
 /*---------------------------*/
 class IronMiner: public Building
@@ -42,15 +42,15 @@ private:
     
 public:
     IronMiner();
-    int RoundEnd();
+    int getGen();
 };
 
-IronMiner::IronMiner() :Building(){};
+IronMiner::IronMiner() :Building(){}
 
-int IronMiner::RoundEnd()
+int IronMiner::getGen()
 {
-    return (amount*2)+(amount*level);
-}
+    return amount*2 + amount*level;
+};
 
 /*---------------------------*/
 class BattleTrainer : public Building
@@ -59,12 +59,12 @@ private:
     
 public:
     BattleTrainer();
-    int RoundEnd();
+    int getGen();
 };
 
 BattleTrainer::BattleTrainer() :Building(){};
 
-int BattleTrainer::RoundEnd()
+int BattleTrainer::getGen()
 {
     return (amount)+(amount*level);
 }
@@ -76,15 +76,15 @@ private:
     
 public:
     ArcheryRange();
-    int RoundEnd();
+    int getGen();
 };
 
-ArcheryRange::ArcheryRange() :Building(){};
+ArcheryRange::ArcheryRange() :Building(){}
 
-int ArcheryRange::RoundEnd()
+int ArcheryRange::getGen()
 {
-    return (amount)+(level);
-}
+    return amount + level;
+};
 
 /*---------------------------*/
 class KnightingPalace: public Building
@@ -93,15 +93,15 @@ private:
     
 public:
     KnightingPalace();
-    int RoundEnd();
+    int getGen();
 };
 
-KnightingPalace::KnightingPalace() :Building(){};
+KnightingPalace::KnightingPalace() :Building(){}
 
-int KnightingPalace::RoundEnd()
+int KnightingPalace::getGen()
 {
-    return (amount)+(level);
-}
+    return amount + level;
+};
 
 /*---------------------------*/
 class DefenderBarracks: public Building
@@ -110,15 +110,14 @@ private:
     
 public:
     DefenderBarracks();
-    int RoundEnd();
+    int getGen();
 };
 
-DefenderBarracks::DefenderBarracks() :Building(){};
+DefenderBarracks::DefenderBarracks() :Building(){}
 
-int DefenderBarracks::RoundEnd()
+int DefenderBarracks::getGen()
 {
-    return (amount)+(level);
-}
-
+    return amount + level;
+};
 
 #endif

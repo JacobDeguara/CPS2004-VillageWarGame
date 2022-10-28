@@ -6,6 +6,7 @@
 #include "Buildings_Types.hpp"
 #include "Troops_Types.hpp"
 #include <vector>
+#include <memory>
 
 using std::vector;
 
@@ -31,8 +32,9 @@ public:
     int getFood();
     int getResSize();
     int RoundEnd();
+    int getGen(int BuildingNum);
     vector<Building> Buildings = {WoodCutter(),StoneMiner(),IronMiner(),BattleTrainer(),ArcheryRange(),KnightingPalace(),DefenderBarracks()};
-    vector<Troops> troops = {Archer(),Knight(),Defender()};
+    vector<Troops> troops = {Archer(5,15,5,5),Knight(10,5,8,10),Defender(10,4,9,5)};
 
     bool upgradeBuilding(int amount,int buildingNum,int woodCost,int stoneCost, int ironCost,int foodCost);
     bool increaseBuilding(int amount,int buildingNum,int woodCost,int stoneCost, int ironCost,int foodCost);
@@ -67,18 +69,37 @@ int Player::getResSize(){
 int Player::RoundEnd()
 {
     //res buildings
-    res.wood += Buildings[0].RoundEnd();
-    res.stone += Buildings[1].RoundEnd();
-    res.iron += Buildings[2].RoundEnd();
-    res.food += Buildings[3].RoundEnd();
+    res.wood += getGen(0);
+    res.stone +=getGen(1);
+    res.iron += getGen(2);
+    res.food += getGen(3);
 
     //troop buildings
-    troops[0].add(Buildings[4].RoundEnd());
-    troops[1].add(Buildings[5].RoundEnd());
-    troops[2].add(Buildings[6].RoundEnd());
-
+    troops[0].add(getGen(4));
+    troops[1].add(getGen(5));
+    troops[2].add(getGen(6));
     return 1;   
 }
+
+int Player::getGen(int BuildingNum)
+{
+    int amount =Buildings[BuildingNum].getamount();
+    int level = Buildings[BuildingNum].getLevel();
+    
+    if(BuildingNum <= 2){ 
+        return amount*2+amount*level;
+    }else if(BuildingNum <= 3){
+        return amount + amount*level;
+    }else{
+        if(amount == 0){
+            return amount;
+        }else{
+            return amount+level;
+        }
+    }
+}
+
+
 
 bool Player::upgradeBuilding(int amount,int buildingNum,int woodCost,int stoneCost, int ironCost,int foodCost)
 {
@@ -148,13 +169,5 @@ bool Player::upgradeTroops(int amount,int troopNum,int woodCost,int stoneCost, i
     troops[troopNum].upgrade(amount);
     return true;
 }
-
-
-
-
-
-
-
-
 
 #endif

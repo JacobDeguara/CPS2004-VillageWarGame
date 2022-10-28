@@ -60,38 +60,51 @@ void createWindows(int yMax,int xMax){
 
 int gameLoop(Game * m){
     int mNum=-1;
+    bool exit = true;
     //-2 is main menu, -1 is sub menu, 0+ is a selection.
     do{
-        m->display();
-        refreshWindows();
-
-        while(mNum == -1){
-            m->display();
-            refreshWindows(); 
-            mNum = m->getmv();
-        }
-
-        if(mNum == -2){
-            m->prepSubMenu();
-        }
-        
-        while(mNum == -2){
+        m->resetMenu();
+        mNum = -1;
+        do{
             m->display();
             refreshWindows();
-            mNum = m->mgetmv();
-        }
-        
-        if(mNum ==-3){
-            m->prepInputMenu();
-        }
 
-        while(mNum == -3){
-            m->display();
-            refreshWindows();
-            mNum = m->imgetmv();
+            while(mNum == -1){
+                m->display();
+                refreshWindows(); 
+                mNum = m->getmv();
+            }
+
+            if(mNum == -2){
+                m->prepSubMenu();
+            }
+            
+            while(mNum == -2){
+                m->display();
+                refreshWindows();
+                mNum = m->mgetmv();
+            }
+            
+            if(mNum ==-3){
+                m->prepInputMenu();
+            }
+
+            while(mNum == -3){
+                m->display();
+                refreshWindows();
+                mNum = m->imgetmv();
+            }
+        }while(mNum < 0);
+        
+        mNum = m->actionTaken();
+        if(mNum==0){
+            //unsuccessfull so loop again with a unsucessfull message
+        }else if(mNum==1){
+            m->endRound();
+        }else{ 
+            exit = false;
         }
-    }while(mNum < 0);
-    
+    }while(exit);
 
     return 0;
 }
@@ -113,8 +126,9 @@ int main(void){
     Game * m = new Game(1,mmWin,smWin,rWin,iWin);
     
     gameLoop(m);
+    endwin();
+    cout << m->actionTaken();
 
     delete m;
-    endwin();
 	return 0;
 }

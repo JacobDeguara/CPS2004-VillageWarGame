@@ -9,7 +9,7 @@ public:
     void add(int num);
     int getamount();
     int getLevel();
-    int RoundEnd();
+    int getGen();
 protected:
     unsigned int amount;
     unsigned int level;
@@ -39,9 +39,11 @@ int Building::getLevel()
     return level;
 }
 
-int Building::RoundEnd()
+int Building::getGen()
 {
     return 0;
 }
+
+
 
 #endif
