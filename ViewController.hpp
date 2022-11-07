@@ -62,7 +62,7 @@ public:
     int getChoice1();
     int getChoice2();
 
-    void update(Player * p);
+    void update(Player * p,int playerNum);
     void refresh();
     
 };
@@ -218,17 +218,17 @@ int ViewController::getInputMenuMV(){
                         }
                         break;
                     case 1:
-                        if(archerC != 1){
+                        if(archerC != 0){
                             archerC--;
                         }
                         break;
                     case 2:
-                        if(knightC != 1){
+                        if(knightC != 0){
                             knightC--;
                         }
                         break;
                     case 3:
-                        if(defenderC != 1){
+                        if(defenderC != 0){
                             defenderC--;
                         }
                         break;
@@ -382,7 +382,7 @@ int ViewController::getChoice2()
 }
 
 //Re-Writes(updates) the View cash to change any changes
-void ViewController::update(Player * p){
+void ViewController::update(Player * p,int playerNum){
     const char * str;
 
     //Menu window  
@@ -473,6 +473,8 @@ void ViewController::update(Player * p){
     }
     if((jHold+1) != j){ // we are checking if we have any Buildings shown
         mvwprintw(reswin,jHold,1,"Buildings:                      ");
+    }else{
+        j--;
     }
     
     //next Resources is the Troops the village has
@@ -493,6 +495,13 @@ void ViewController::update(Player * p){
     }
     if((jHold+1) != j){ // we are checking if we have any Troops shown
         mvwprintw(reswin,jHold,1,"Troops:                      ");
+    }else{
+        j--;
+    }
+
+    //clear the resaurces slices not used
+    for(int i = j;i < 17;i++){
+        mvwprintw(reswin,i,1,"                                             ");
     }
 
     //Input Window
@@ -645,13 +654,13 @@ void ViewController::update(Player * p){
     if(highlight1 == 3 && highlight2 == 0){
         for (size_t i = 0; i < 4; i++){
             int num = 0;
-            if(highlight4col == 0 && highlight4row == i){
+            if(highlight4col == i && highlight4row == 0){
                 wattron(inwin,A_REVERSE);
             }
             mvwprintw(inwin,1+i,1,"<");
             wattroff(inwin,A_REVERSE);
             
-            if(highlight4col == 1 && highlight4row == i){
+            if(highlight4col == i && highlight4row == 1){
                 wattron(inwin,A_REVERSE);
             }
             switch(i){
@@ -671,7 +680,7 @@ void ViewController::update(Player * p){
             wprintw(inwin,"\t%d\t",num);
             wattroff(inwin,A_REVERSE);
                 
-            if(highlight4col == 2 && highlight4row == i){
+            if(highlight4col == i && highlight4row == 2){
                 wattron(inwin,A_REVERSE);
             }
             wprintw(inwin,">");

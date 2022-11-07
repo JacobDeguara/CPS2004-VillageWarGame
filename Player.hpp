@@ -66,6 +66,7 @@ Player::~Player(){
         delete(i);
     }
     buildings.clear();
+    
     for(auto i : troops){
         delete(i);
     }
