@@ -123,11 +123,13 @@ int main(void){
     //create Windows
     createWindows(yMax,xMax);
     
-    Game * m = new Game(1,mmWin,smWin,rWin,iWin);
+    Game * m = new Game(1,mmWin,smWin,rWin,iWin,mapWin);
     
-    gameLoop(m);
+    //gameLoop(m);
+    m->gameLoop();
+    
     endwin();
-    cout << m->actionTaken();
+    //cout << m->actionTaken();
 
     delete m;
 	return 0;

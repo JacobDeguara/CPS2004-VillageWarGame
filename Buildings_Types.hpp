@@ -1,8 +1,8 @@
 #ifndef _BUILDING_TYPES_H_
 #define _BUILDING_TYPES_H_
-#include "Building.hpp"
+#include "Buildings.hpp"
 
-class WoodCutter: public Building
+class WoodCutter: public Buildings
 {
 private:
     
@@ -11,7 +11,7 @@ public:
     int getGen();
 };
 
-WoodCutter::WoodCutter() :Building(){}
+WoodCutter::WoodCutter() :Buildings(){}
 
 int WoodCutter::getGen()
 {
@@ -19,7 +19,7 @@ int WoodCutter::getGen()
 };
 
 /*---------------------------*/
-class StoneMiner: public Building
+class StoneMiner: public Buildings
 {
 private:
     
@@ -28,7 +28,7 @@ public:
     int getGen();
 };
 
-StoneMiner::StoneMiner() :Building(){}
+StoneMiner::StoneMiner() :Buildings(){}
 
 int StoneMiner::getGen()
 {
@@ -36,7 +36,7 @@ int StoneMiner::getGen()
 };
 
 /*---------------------------*/
-class IronMiner: public Building
+class IronMiner: public Buildings
 {
 private:
     
@@ -45,7 +45,7 @@ public:
     int getGen();
 };
 
-IronMiner::IronMiner() :Building(){}
+IronMiner::IronMiner() :Buildings(){}
 
 int IronMiner::getGen()
 {
@@ -53,7 +53,7 @@ int IronMiner::getGen()
 };
 
 /*---------------------------*/
-class BattleTrainer : public Building
+class BattleTrainer : public Buildings
 {
 private:
     
@@ -62,7 +62,7 @@ public:
     int getGen();
 };
 
-BattleTrainer::BattleTrainer() :Building(){};
+BattleTrainer::BattleTrainer() :Buildings(){};
 
 int BattleTrainer::getGen()
 {
@@ -70,7 +70,7 @@ int BattleTrainer::getGen()
 }
 
 /*---------------------------*/
-class ArcheryRange : public Building
+class ArcheryRange : public Buildings
 {
 private:
     
@@ -79,7 +79,7 @@ public:
     int getGen();
 };
 
-ArcheryRange::ArcheryRange() :Building(){}
+ArcheryRange::ArcheryRange() :Buildings(){}
 
 int ArcheryRange::getGen()
 {
@@ -87,7 +87,7 @@ int ArcheryRange::getGen()
 };
 
 /*---------------------------*/
-class KnightingPalace: public Building
+class KnightingPalace: public Buildings
 {
 private:
     
@@ -96,7 +96,7 @@ public:
     int getGen();
 };
 
-KnightingPalace::KnightingPalace() :Building(){}
+KnightingPalace::KnightingPalace() :Buildings(){}
 
 int KnightingPalace::getGen()
 {
@@ -104,7 +104,7 @@ int KnightingPalace::getGen()
 };
 
 /*---------------------------*/
-class DefenderBarracks: public Building
+class DefenderBarracks: public Buildings
 {
 private:
     
@@ -113,7 +113,7 @@ public:
     int getGen();
 };
 
-DefenderBarracks::DefenderBarracks() :Building(){}
+DefenderBarracks::DefenderBarracks() :Buildings(){}
 
 int DefenderBarracks::getGen()
 {

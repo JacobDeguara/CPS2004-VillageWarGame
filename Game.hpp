@@ -2,9 +2,8 @@
 #include <ncurses.h>
 #include <vector>
 #include <string>
-#include <tuple>
-#include <iostream>
 #include "Player.hpp"
+#include "ViewController.hpp"
 
 #ifndef _Game_H_
 #define _Game_H_
@@ -25,30 +24,39 @@ private:
         int choiceSize;
     }choices[4];
     int count=1;
+
     void choicesCreation(); //this is used for formulating the strings for Choice
     void costCreation(int wood,int stone,int iron,int food); // this is used to formulate the cost for display
-    vector<Player> p;
+    
+    vector<Player *> p;
+    ViewController * VC;
     int playerNum;
     int wood,stone,iron,food; //this represents the cost of the respective selelected type
 public:
 
     /*constuctor*/
-    Game(int NumOfPlayers,WINDOW * menuWindow, WINDOW * submenuWindow, WINDOW * resourceWindow,WINDOW * inputWindow); //constuctor
-
+    Game(int NumOfPlayers,WINDOW * menuWindow, WINDOW * submenuWindow, WINDOW * resourceWindow,WINDOW * inputWindow,WINDOW * mapWindow); //constuctor
+    ~Game();
     /*display*/
-    int getmv(); // get move menu 
-    int mgetmv(); // get move sub menu
-    int imgetmv(); // get move input menu
-    void display(); // display Windows
-    void prepSubMenu(); // prepare the sub menu (needed before mgetmv())
-    void prepInputMenu(); // prepare the input menu (needed before imgetmv())
-    void resetMenu(); //resets the menu system
+    //getMenuMove()
+
+    int getmv(); /*get move menu*/  
+    int mgetmv(); /*get move sub menu */ 
+    int imgetmv(); /* get move input menu */
+    void prepSubMenu(); /* prepare the sub menu (needed before mgetmv()) */
+    void prepInputMenu(); /* prepare the input menu (needed before imgetmv()) */
+    void resetMenu(); /* resets the menu system */
+    //display()
+    
+    void display(); /* display Windows */
     
     int actionTaken(); // will take the selected action and run it
     void endRound();
+
+    int gameLoop();
 };
 
-Game::Game(int NumOfPlayers,WINDOW * menuWindow, WINDOW * submenuWindow, WINDOW * resourceWindow,WINDOW * inputWindow){
+Game::Game(int NumOfPlayers,WINDOW * menuWindow, WINDOW * submenuWindow, WINDOW * resourceWindow,WINDOW * inputWindow,WINDOW * mapWindow){
     //initilize menus and highlights
     menuwin = menuWindow;
     submenuwin = submenuWindow;
@@ -61,7 +69,16 @@ Game::Game(int NumOfPlayers,WINDOW * menuWindow, WINDOW * submenuWindow, WINDOW 
     //innitilizeing the menu system
     choicesCreation();
     playerNum = 0;
-    p.assign(NumOfPlayers,Player());
+    p.assign(NumOfPlayers,new Player());
+    VC = new ViewController(menuWindow,submenuWindow,resourceWindow,inputWindow,mapWindow);
+
+}
+
+Game::~Game(){
+    for(auto i : p){
+        delete(i);
+    }
+    p.clear();
 }
 
 //this is where the menu strings are created
@@ -85,10 +102,7 @@ void Game::choicesCreation(){
 }
 
 void Game::costCreation(int wood,int stone,int iron,int food){
-    this->wood = wood*count * (p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
-    this->stone = stone*count *(p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
-    this->iron = iron*count * (p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
-    this->food = food*count * (p[playerNum].Buildings[highlight2].getamount()+p[playerNum].Buildings[highlight2].getLevel());
+// removed since this Has already been moved to ViewController
 }
 
 // get choice changes for main menu
@@ -261,7 +275,7 @@ void Game::display(){
                     wood = 0;
                     stone = 0;
                     iron = 0;
-                    food = 1*count * (p[playerNum].troops[highlight2].getLevel());  
+                    food = 1*count + 1*(p[playerNum]->troops[highlight2]->getLevel());  
                     mvwprintw(inwin,1,1,"Train the Archer         ");
                     mvwprintw(inwin,2,1,"Wood: %d , Stone: %d , Iron: %d , Food %d         ",wood,stone,iron,food);
                 }
@@ -279,7 +293,7 @@ void Game::display(){
                     wood = 0;
                     stone = 0;
                     iron = 0;
-                    food = 1*count * (p[playerNum].troops[highlight2].getLevel());    
+                    food = 1*count * (p[playerNum]->troops[highlight2]->getLevel());    
                     mvwprintw(inwin,1,1,"Train Knight             ");
                     mvwprintw(inwin,2,1,"Wood: %d , Stone: %d , Iron: %d , Food %d         ",wood,stone,iron,food);
                 }
@@ -297,7 +311,7 @@ void Game::display(){
                     wood = 0;
                     stone = 0;
                     iron = 0;
-                    food = 2*count * (p[playerNum].troops[highlight2].getLevel()); 
+                    food = 2*count * (p[playerNum]->troops[highlight2]->getLevel()); 
                     mvwprintw(inwin,1,1,"Train Defender           ");
                     mvwprintw(inwin,2,1,"Wood: %d , Stone: %d , Iron: %d , Food %d         ",wood,stone,iron,food);
                 }
@@ -399,87 +413,95 @@ void Game::display(){
         }
     }
     
-
-    mvwprintw(reswin,0,1,"Resources");
-    for(int i = 0; i < p[playerNum].getResSize(); i++)
-    {   
-        int num;
-        switch(i){
-            case 0:
-                str = "Wood : ";
-                num = p[playerNum].getWood();
-                break;
-            case 1:
-                str = "Stone: ";
-                num = p[playerNum].getStone();
-                break;
-            case 2:
-                str = "Iron : ";
-                num = p[playerNum].getIron();
-                break;
-            case 3:
-                str = "Food : ";
-                num = p[playerNum].getFood();
-                break;
-            case 4:
-                break;
-            default:
-            break;
-        }
-        mvwprintw(reswin,i+1,1,"%s%d    ",str,num);
-    }
-
-    mvwprintw(reswin,1+p[playerNum].getResSize(),1,"Buildings:");
-    for(int i = 0; i < 7; i++)
-    {   
-        int num1,num2;
-        str = choices[0].smNames[i].data();
-        num1 = p[playerNum].Buildings[i].getamount();
-        num2 = p[playerNum].Buildings[i].getLevel();
-        mvwprintw(reswin,i+2+p[playerNum].getResSize(),1,"%s: Qty:%d Lvl:%d Gen:%d",str,num1,num2,p[playerNum].getGen(i));
-    }
-
-    mvwprintw(reswin,9+p[playerNum].getResSize(),1,"Troops:");
-    for(int i = 0; i < 3; i++)
-    {   
-        int num1,num2,num3;
-        str = choices[2].smNames[i].data();
-        num1 = p[playerNum].troops[i].getAmount();
-        num2 = p[playerNum].troops[i].getLevel();
-        num3 = p[playerNum].troops[i].getPowerRating();
-        mvwprintw(reswin,i+10+p[playerNum].getResSize(),1,"%s: Qty:%d Lvl:%d Power:%d",str,num1,num2,num3);
-    }
-    
 }
 
 /* > Runs the action selected
-* if unsuccessfull returns false (0)
-* if successfull returns true(1)
-* if want to exit (surrender) returns exit(-1)
+* if player unsuccessfull or takes an action returns false (0)
+* if player takes an action returns true (1) (this is so that the end of the round is declared)
+* if player want to exit (surrender) returns exit (-1)
 */
-int Game::actionTaken(){  
-    if(highlight == 0){ //create Building
-        return p[playerNum].increaseBuilding(count,highlight2,wood,stone,iron,food);
-    }else if(highlight == 1){//upgrade building
-        return p[playerNum].upgradeBuilding(count,highlight2,wood,stone,iron,food);
-    }else if(highlight == 2){//upgrade troops   
-        return p[playerNum].upgradeTroops(count,highlight2,wood,stone,iron,food);
-    }else if(highlight == 3){//actions
-        if(highlight2==0){ //action
-            //attack protocall
-            return 0;
-        }else if(highlight2 ==1){ //
-            //skipp protocall
-            return 1;
-        }else if(highlight2 ==2){  
-            //surrender protocall
-            return -1;
-        }
+int Game::actionTaken(){
+    int choice1 = VC->getChoice1();
+    int choice2 = VC->getChoice2();
+    switch(choice1){
+        case 0:
+            return p[playerNum]->increaseBuilding(VC->getCount(),choice2,VC->getWoodCost(),VC->getStoneCost(),VC->getIronCost(),VC->getFoodCost());
+        break;
+        case 1:
+            return p[playerNum]->upgradeBuilding(VC->getCount(),choice2,VC->getWoodCost(),VC->getStoneCost(),VC->getIronCost(),VC->getFoodCost());
+        break;
+        case 2:
+            return p[playerNum]->upgradeTroops(VC->getCount(),choice2,VC->getWoodCost(),VC->getStoneCost(),VC->getIronCost(),VC->getFoodCost()); 
+        break;
+            //these will always return false ^^^ (= 0)
+        case 3:     
+            if(choice2 == 0){ //attack protocal (not done yet)
+                return 1;
+            }
+            if(choice2 == 1){ //end turn protocal
+                return 1;
+            }
+            if(choice2 == 2){
+                return -1;
+            }
+        default:
+            return false;
+        
     }
-    return false;
 }
 
 void Game::endRound(){
-    p[playerNum].RoundEnd();
+    p[playerNum]->RoundEnd();
 }
+
+int Game::gameLoop(){
+    int whichMenuNum = -1;
+    bool dontExit = true;
+    do{
+        VC->resetMenu();
+        whichMenuNum = -1;
+        do{
+            VC->update(p[playerNum]);
+            VC->refresh();
+            while(whichMenuNum == -1){
+                VC->update(p[playerNum]);
+                VC->refresh();   
+                whichMenuNum = VC->getMenuMV();
+            }
+
+            if(whichMenuNum == -2){
+                VC->prepSubMenu();
+            }
+
+            while(whichMenuNum == -2){
+                VC->update(p[playerNum]);
+                VC->refresh();
+                whichMenuNum = VC->getSubMenuMV();
+            }   
+
+            if(whichMenuNum == -3){
+                VC->prepInputMenu();
+            }
+
+            while(whichMenuNum == -3){
+                VC->update(p[playerNum]);
+                VC->refresh();
+                whichMenuNum = VC->getInputMenuMV();
+            }
+            
+        }while(whichMenuNum < 0);
+
+        whichMenuNum = actionTaken();
+        if(whichMenuNum == 0){
+            //do nothing
+        }else if(whichMenuNum == 1){ //ended the his turn
+            endRound();
+        }else if(whichMenuNum == -1){ // surrendered
+            dontExit = false;
+        }
+
+    }while(dontExit);
+    return 0;
+}
+
 #endif

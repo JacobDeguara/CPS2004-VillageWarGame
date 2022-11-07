@@ -5,19 +5,22 @@ class Troops
 {
 public:
     Troops(int health ,int damage ,int acc,int CC);
-    void upgrade(int num);
-    void add(int num);
+    
     int getHealth();
     int getCarryingCapacity();
     int getAmount();
     int getLevel();
     int getDamage();
+
+    virtual void upgrade(int num);
+    void add(int num);
+
     int getPowerRating();
-    void setAmount(int amount);
+    int RemoveTroops(int amount);
     
 protected:
-    unsigned int amount = 0;
-    unsigned int level = 1;
+    int amount = 0;
+    int level = 1;
     int health;
     int damage;
     int acc;
@@ -25,6 +28,7 @@ protected:
     int carryingCapacity;
 };
 
+//Stating troop stats
 Troops::Troops(int health ,int damage ,int acc,int CC)
 {   
     this->health = health;
@@ -33,6 +37,7 @@ Troops::Troops(int health ,int damage ,int acc,int CC)
     this->carryingCapacity = CC;
 }
 
+//upgrades Troops
 void Troops::upgrade(int num){
     level += num;
     health += num;
@@ -40,43 +45,59 @@ void Troops::upgrade(int num){
     carryingCapacity += num;
 }
 
+//Adds Troops
 void Troops::add(int num){
     amount += num;
 }
 
+//gets health
 int Troops::getHealth()
 {
     return health;
 }
 
+//gets carringCapacity
 int Troops::getCarryingCapacity()
 {
     return carryingCapacity;
 }
 
+//gets amount
 int Troops::getAmount()
 {
     return amount;
 }
 
+//gets level
 int Troops::getLevel()
 {
     return level;
 }
 
+//gets Damage
 int Troops::getDamage()
 {
     return damage;
 }
 
+//returns (damage + health *amount)
 int Troops::getPowerRating()
 {
     return (damage + health) * amount;
 }
 
-void Troops::setAmount(int amount)
-{
-    this->amount = amount;
+/*This will remove by the amount
+* if(returns 0) => (amount given > amount available)
+*/
+int Troops::RemoveTroops(int amount)
+{   
+    int temp;
+    if(amount <= this->amount){
+        temp = amount;
+        this->amount -= amount;
+        return temp;
+    }
+    return 0;
 }
 
 #endif

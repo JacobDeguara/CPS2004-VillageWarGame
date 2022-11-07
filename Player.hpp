@@ -1,15 +1,15 @@
 
 #ifndef _PLAYER_H_
 #define _PLAYER_H_
-#include "Building.hpp"
+
+#include "Buildings.hpp"
 #include "Troops.hpp"
 #include "Buildings_Types.hpp"
 #include "Troops_Types.hpp"
+
 #include <vector>
-#include <memory>
 
 using std::vector;
-
 
 class Player
 {
@@ -17,15 +17,16 @@ private:
     int x,y; //coords
     int health; // hp of Village
     struct{
-        int wood =10;
-        int stone =10;
-        int iron =0;
-        int food =3;
+        int wood =999;
+        int stone =999;
+        int iron =999;
+        int food =999;
         int size = 4;
     }res;
 
 public:
     Player();
+    ~Player();
     int getWood();
     int getIron();
     int getStone();
@@ -33,8 +34,9 @@ public:
     int getResSize();
     int RoundEnd();
     int getGen(int BuildingNum);
-    vector<Building> Buildings = {WoodCutter(),StoneMiner(),IronMiner(),BattleTrainer(),ArcheryRange(),KnightingPalace(),DefenderBarracks()};
-    vector<Troops> troops = {Archer(5,15,5,5),Knight(10,5,8,10),Defender(10,4,9,5)};
+    
+    vector<Buildings *> buildings;
+    vector<Troops *> troops;
 
     bool upgradeBuilding(int amount,int buildingNum,int woodCost,int stoneCost, int ironCost,int foodCost);
     bool increaseBuilding(int amount,int buildingNum,int woodCost,int stoneCost, int ironCost,int foodCost);
@@ -44,6 +46,30 @@ public:
 Player::Player()
 {
     this->health = 100;
+    buildings = {
+        new WoodCutter(),
+        new StoneMiner(),
+        new IronMiner(),
+        new BattleTrainer(),
+        new ArcheryRange(),
+        new KnightingPalace(),
+        new DefenderBarracks()};
+
+    troops = {
+        new   Archer(4,6,6,5),
+        new   Knight(5,5,5,5),
+        new Defender(7,3,3,7)};
+}
+
+Player::~Player(){
+    for(auto i : buildings){
+        delete(i);
+    }
+    buildings.clear();
+    for(auto i : troops){
+        delete(i);
+    }
+    troops.clear();
 }
 
 int Player::getWood(){
@@ -75,16 +101,16 @@ int Player::RoundEnd()
     res.food += getGen(3);
 
     //troop buildings
-    troops[0].add(getGen(4));
-    troops[1].add(getGen(5));
-    troops[2].add(getGen(6));
+    troops[0]->add(getGen(4));
+    troops[1]->add(getGen(5));
+    troops[2]->add(getGen(6));
     return 1;   
 }
 
 int Player::getGen(int BuildingNum)
 {
-    int amount =Buildings[BuildingNum].getamount();
-    int level = Buildings[BuildingNum].getLevel();
+    int amount = buildings[BuildingNum]->getamount();
+    int level = buildings[BuildingNum]->getLevel();
     
     if(BuildingNum <= 2){ 
         return amount*2+amount*level;
@@ -120,8 +146,8 @@ bool Player::upgradeBuilding(int amount,int buildingNum,int woodCost,int stoneCo
     res.iron -= ironCost;
     res.food -= foodCost;
 
-    Buildings[buildingNum].upgrade(amount);
-    return true;
+    buildings[buildingNum]->upgrade(amount);
+    return false;
 }
 
 bool Player::increaseBuilding(int amount,int buildingNum,int woodCost,int stoneCost, int ironCost,int foodCost)
@@ -143,8 +169,8 @@ bool Player::increaseBuilding(int amount,int buildingNum,int woodCost,int stoneC
     res.iron -= ironCost;
     res.food -= foodCost;
 
-    Buildings[buildingNum].add(amount);  
-    return true;  
+    buildings[buildingNum]->add(amount);  
+    return false;  
 }
 
 bool Player::upgradeTroops(int amount,int troopNum,int woodCost,int stoneCost, int ironCost,int foodCost)
@@ -166,8 +192,8 @@ bool Player::upgradeTroops(int amount,int troopNum,int woodCost,int stoneCost, i
     res.iron -= ironCost;
     res.food -= foodCost;
 
-    troops[troopNum].upgrade(amount);
-    return true;
+    troops[troopNum]->upgrade(amount);
+    return false;
 }
 
 #endif
