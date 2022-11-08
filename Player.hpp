@@ -8,8 +8,10 @@
 #include "Troops_Types.hpp"
 
 #include <vector>
+#include <memory>
 
 using std::vector;
+using std::shared_ptr;
 
 class Player
 {
@@ -33,10 +35,23 @@ public:
     int getFood();
     int getResSize();
     int RoundEnd();
-    int getGen(int BuildingNum);
     
-    vector<Buildings *> buildings;
-    vector<Troops *> troops;
+    
+    vector<shared_ptr<Buildings>> buildings{
+        std::make_shared<WoodCutter>(),
+        std::make_shared<StoneMiner>(),
+        std::make_shared<IronMiner>(),
+        std::make_shared<BattleTrainer>(),
+        std::make_shared<ArcheryRange>(),
+        std::make_shared<KnightingPalace>(),
+        std::make_shared<DefenderBarracks>(),
+    };
+
+    vector<shared_ptr<Troops>> troops{
+        std::make_shared<Archer>(4,6,6,5),
+        std::make_shared<Knight>(5,5,5,5),
+        std::make_shared<Defender>(7,3,3,7),
+    };
 
     bool upgradeBuilding(int amount,int buildingNum,int woodCost,int stoneCost, int ironCost,int foodCost);
     bool increaseBuilding(int amount,int buildingNum,int woodCost,int stoneCost, int ironCost,int foodCost);
@@ -46,31 +61,15 @@ public:
 Player::Player()
 {
     this->health = 100;
-    buildings = {
-        new WoodCutter(),
-        new StoneMiner(),
-        new IronMiner(),
-        new BattleTrainer(),
-        new ArcheryRange(),
-        new KnightingPalace(),
-        new DefenderBarracks()};
 
     troops = {
-        new   Archer(4,6,6,5),
-        new   Knight(5,5,5,5),
-        new Defender(7,3,3,7)};
+        std::make_shared<Archer>(4,6,6,5),
+        std::make_shared<Knight>(5,5,5,5),
+        std::make_shared<Defender>(7,3,3,7),};
 }
 
 Player::~Player(){
-    for(auto i : buildings){
-        delete(i);
-    }
-    buildings.clear();
     
-    for(auto i : troops){
-        delete(i);
-    }
-    troops.clear();
 }
 
 int Player::getWood(){
@@ -96,37 +95,17 @@ int Player::getResSize(){
 int Player::RoundEnd()
 {
     //res buildings
-    res.wood += getGen(0);
-    res.stone +=getGen(1);
-    res.iron += getGen(2);
-    res.food += getGen(3);
+    res.wood += buildings[0]->getGen();
+    res.stone +=buildings[1]->getGen();
+    res.iron += buildings[2]->getGen();
+    res.food += buildings[3]->getGen();
 
     //troop buildings
-    troops[0]->add(getGen(4));
-    troops[1]->add(getGen(5));
-    troops[2]->add(getGen(6));
+    troops[0]->add(buildings[4]->getGen());
+    troops[1]->add(buildings[5]->getGen());
+    troops[2]->add(buildings[6]->getGen());
     return 1;   
 }
-
-int Player::getGen(int BuildingNum)
-{
-    int amount = buildings[BuildingNum]->getamount();
-    int level = buildings[BuildingNum]->getLevel();
-    
-    if(BuildingNum <= 2){ 
-        return amount*2+amount*level;
-    }else if(BuildingNum <= 3){
-        return amount + amount*level;
-    }else{
-        if(amount == 0){
-            return amount;
-        }else{
-            return amount+level;
-        }
-    }
-}
-
-
 
 bool Player::upgradeBuilding(int amount,int buildingNum,int woodCost,int stoneCost, int ironCost,int foodCost)
 {

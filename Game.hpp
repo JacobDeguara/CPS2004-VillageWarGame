@@ -17,7 +17,7 @@ private:
     ViewController * VC;
 
     //Players Resaources and Manipulation
-    vector<Player *> p;
+    vector<Player> p;
     
     struct {
         int Max;
@@ -43,15 +43,13 @@ Game::Game(int NumOfPlayers,WINDOW * menuWindow, WINDOW * submenuWindow, WINDOW 
     PlayersNumbers.Current = 0;
     PlayersNumbers.Max = PlayersNumbers.Max = NumOfPlayers;
     for(int i=0;i < NumOfPlayers;i++){
-        p.push_back(new Player());
+        p.push_back(Player());
     }
     VC = new ViewController(menuWindow,submenuWindow,resourceWindow,inputWindow,mapWindow);
 
 }
 
 Game::~Game(){
-    p.push_back(new Player());
-    delete(p[0]);
     p.clear();
     
     delete(VC);
@@ -67,13 +65,13 @@ int Game::actionTaken(){
     int choice2 = VC->getChoice2();
     switch(choice1){
         case 0:
-            return p[PlayersNumbers.Current]->increaseBuilding(VC->getCount(),choice2,VC->getWoodCost(),VC->getStoneCost(),VC->getIronCost(),VC->getFoodCost());
+            return p[PlayersNumbers.Current].increaseBuilding(VC->getCount(),choice2,VC->getWoodCost(),VC->getStoneCost(),VC->getIronCost(),VC->getFoodCost());
         break;
         case 1:
-            return p[PlayersNumbers.Current]->upgradeBuilding(VC->getCount(),choice2,VC->getWoodCost(),VC->getStoneCost(),VC->getIronCost(),VC->getFoodCost());
+            return p[PlayersNumbers.Current].upgradeBuilding(VC->getCount(),choice2,VC->getWoodCost(),VC->getStoneCost(),VC->getIronCost(),VC->getFoodCost());
         break;
         case 2:
-            return p[PlayersNumbers.Current]->upgradeTroops(VC->getCount(),choice2,VC->getWoodCost(),VC->getStoneCost(),VC->getIronCost(),VC->getFoodCost()); 
+            return p[PlayersNumbers.Current].upgradeTroops(VC->getCount(),choice2,VC->getWoodCost(),VC->getStoneCost(),VC->getIronCost(),VC->getFoodCost()); 
         break;
             //these will always return false ^^^ (= 0)
         case 3:     
@@ -93,7 +91,7 @@ int Game::actionTaken(){
 }
 
 void Game::endRound(){
-    p[PlayersNumbers.Current]->RoundEnd();
+    p[PlayersNumbers.Current].RoundEnd();
 }
 
 int Game::gameLoop(){
@@ -108,10 +106,10 @@ int Game::gameLoop(){
                 VC->resetMenu();
                 whichMenuNum = -1;
                 do{
-                    VC->update(p[PlayersNumbers.Current],PlayersNumbers.Current);
+                    VC->update(&p[PlayersNumbers.Current],PlayersNumbers.Current);
                     VC->refresh();
                     while(whichMenuNum == -1){
-                        VC->update(p[PlayersNumbers.Current],PlayersNumbers.Current);
+                        VC->update(&p[PlayersNumbers.Current],PlayersNumbers.Current);
                         VC->refresh();   
                         whichMenuNum = VC->getMenuMV();
                     }
@@ -121,7 +119,7 @@ int Game::gameLoop(){
                     }
 
                     while(whichMenuNum == -2){
-                        VC->update(p[PlayersNumbers.Current],PlayersNumbers.Current);
+                        VC->update(&p[PlayersNumbers.Current],PlayersNumbers.Current);
                         VC->refresh();
                         whichMenuNum = VC->getSubMenuMV();
                     }   
@@ -131,7 +129,7 @@ int Game::gameLoop(){
                     }
 
                     while(whichMenuNum == -3){
-                        VC->update(p[PlayersNumbers.Current],PlayersNumbers.Current);
+                        VC->update(&p[PlayersNumbers.Current],PlayersNumbers.Current);
                         VC->refresh();
                         whichMenuNum = VC->getInputMenuMV();
                     }
@@ -160,7 +158,7 @@ int Game::gameLoop(){
             }while(dontExit);//end of menu loop
         }//end of if check for player exist
 
-    }while(PlayersNumbers.Max != 0);//end of loop for next player
+    }while(PlayersNumbers.Max > 1);//end of loop for next player
     return 0;
 }
 

@@ -49,7 +49,7 @@ IronMiner::IronMiner() :Buildings(){}
 
 int IronMiner::getGen()
 {
-    return amount*2 + amount*level;
+    return (amount*2) + (amount*level);
 };
 
 /*---------------------------*/
@@ -83,7 +83,7 @@ ArcheryRange::ArcheryRange() :Buildings(){}
 
 int ArcheryRange::getGen()
 {
-    return amount + level;
+    return amount;
 };
 
 /*---------------------------*/
@@ -100,7 +100,7 @@ KnightingPalace::KnightingPalace() :Buildings(){}
 
 int KnightingPalace::getGen()
 {
-    return amount + level;
+    return amount;
 };
 
 /*---------------------------*/
@@ -117,7 +117,7 @@ DefenderBarracks::DefenderBarracks() :Buildings(){}
 
 int DefenderBarracks::getGen()
 {
-    return amount + level;
+    return amount;
 };
 
 #endif

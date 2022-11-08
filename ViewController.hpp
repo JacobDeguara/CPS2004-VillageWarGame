@@ -316,10 +316,10 @@ void ViewController::costCreationTroop(int food,Player * p){
 }
 
 void ViewController::costCreationBuildings(int wood,int stone,int iron,int food,Player * p){
-    this->wood = wood *count * (p->buildings[highlight2]->getamount()+p->buildings[highlight2]->getLevel());
-    this->stone= stone*count * (p->buildings[highlight2]->getamount()+p->buildings[highlight2]->getLevel());
-    this->iron = iron *count * (p->buildings[highlight2]->getamount()+p->buildings[highlight2]->getLevel());
-    this->food = food *count * (p->buildings[highlight2]->getamount()+p->buildings[highlight2]->getLevel());
+    this->wood = wood *(count *(p->buildings[highlight2]->getamount()+p->buildings[highlight2]->getLevel()));
+    this->stone= stone *(count *(p->buildings[highlight2]->getamount()+p->buildings[highlight2]->getLevel()));
+    this->iron = iron  *(count *(p->buildings[highlight2]->getamount()+p->buildings[highlight2]->getLevel()));
+    this->food = food  *(count *(p->buildings[highlight2]->getamount()+p->buildings[highlight2]->getLevel()));
 }
 
 //Connects all the windows and preps the Menu
@@ -462,17 +462,18 @@ void ViewController::update(Player * p,int playerNum){
     for(int i = 0; i < 7; i++)
     {   
         
-        int amount,level;
+        int amount,level,gen;
         str = MenuNames[0].submenuNames[i].data();
         amount = p->buildings[i]->getamount();
         level = p->buildings[i]->getLevel();
+        gen = p->buildings[i]->getGen();
         if(amount != 0){
-            mvwprintw(reswin,j,1,"%s: Qty:%d Lvl:%d Gen:%d",str,amount,level,p->getGen(i));
+            mvwprintw(reswin,j,1,"%s: Qty:%d Lvl:%d Gen:%d",str,amount,level,gen);
             j++;
         }
     }
     if((jHold+1) != j){ // we are checking if we have any Buildings shown
-        mvwprintw(reswin,jHold,1,"Buildings:                      ");
+        mvwprintw(reswin,jHold,1,"Buildings:                               ");
     }else{
         j--;
     }
@@ -494,7 +495,7 @@ void ViewController::update(Player * p,int playerNum){
         }
     }
     if((jHold+1) != j){ // we are checking if we have any Troops shown
-        mvwprintw(reswin,jHold,1,"Troops:                      ");
+        mvwprintw(reswin,jHold,1,"Troops:                                  ");
     }else{
         j--;
     }
