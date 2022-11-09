@@ -18,7 +18,7 @@ class Player
 private:
     int ID;
     int x,y; //coords
-    int health; // hp of Village
+    int health= 100; // hp of Village
     struct{
         int wood =999;
         int stone =999;
@@ -28,8 +28,8 @@ private:
     }res;
 
 public:
-    Player();
-    ~Player();
+    Player()=default;
+    ~Player()= default;
     void setID(int newID);
     int getID();
     int getWood();
@@ -38,9 +38,8 @@ public:
     int getFood();
     int getResSize();
     int RoundEnd();
-    
-    
-    vector<shared_ptr<Buildings>> buildings{
+
+    vector<shared_ptr<Buildings>> buildings = {
         std::make_shared<WoodCutter>(),
         std::make_shared<StoneMiner>(),
         std::make_shared<IronMiner>(),
@@ -50,7 +49,7 @@ public:
         std::make_shared<DefenderBarracks>(),
     };
 
-    vector<shared_ptr<Troops>> troops{
+    vector<shared_ptr<Troops>> troops = {
         std::make_shared<Archer>(4,6,6,5),
         std::make_shared<Knight>(5,5,5,5),
         std::make_shared<Defender>(7,3,3,7),
@@ -60,20 +59,6 @@ public:
     bool increaseBuilding(int amount,int buildingNum,int woodCost,int stoneCost, int ironCost,int foodCost);
     bool upgradeTroops(int amount,int troopNum,int woodCost,int stoneCost, int ironCost,int foodCost);
 };
-
-Player::Player()
-{
-    this->health = 100;
-
-    troops = {
-        std::make_shared<Archer>(4,6,6,5),
-        std::make_shared<Knight>(5,5,5,5),
-        std::make_shared<Defender>(7,3,3,7),};
-}
-
-Player::~Player(){
-    
-}
 
 void Player::setID(int newID){
     ID = newID;

@@ -49,7 +49,7 @@ Game::Game(){
 
 }
 
-//This should be done before the game starts
+//This should be done before the game
 void Game::StartGame(){
     int numOfPlayer,numOfAi;
 
@@ -57,9 +57,8 @@ void Game::StartGame(){
 
     PlayersNumbers.Current = 0;
     PlayersNumbers.Max = numOfPlayer;
-    p.assign(PlayersNumbers.Max,Player());
-
     for(int i=0;i < PlayersNumbers.Max;i++){
+        p.push_back(Player());
         p[i].setID(i);
     }
 }
@@ -91,7 +90,7 @@ int Game::actionTaken(){
             //these will always return false ^^^ (= 0)
         case 3:     
             if(choice2 == 0){ //attack protocal (not done yet)
-                return 1;
+                return 2;
             }
             if(choice2 == 1){ //end turn protocal
                 return 1;
@@ -100,7 +99,7 @@ int Game::actionTaken(){
                 return -1;
             }
         default:
-            return false;
+            return 0;
         
     }
 }
@@ -152,10 +151,9 @@ int Game::gameLoop(){
                     
                 }while(whichMenuNum < 0);
 
+
                 whichMenuNum = actionTaken();
-                if(whichMenuNum == 0){ //attack
-                    //attack protocal goes here
-                    endRound();
+                if(whichMenuNum == 0){
                     VC->resetMenu();
                 }else if(whichMenuNum == 1){ //ended the his turn
                     endRound();
@@ -171,9 +169,13 @@ int Game::gameLoop(){
                     if(PlayersNumbers.Current == PlayersNumbers.Max){
                         PlayersNumbers.Current = 0;   
                     }
+                }else if(whichMenuNum == 2){ //attack protocal
+                    VC->resetMenu();
+                    endRound();
                 }
 
             }while(dontExit);//end of menu loop
+
         }//end of if check for player exist
 
     }while(PlayersNumbers.Max > 1);//end of loop for next player
