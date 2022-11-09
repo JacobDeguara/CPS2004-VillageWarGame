@@ -39,12 +39,14 @@ private:
     int archerC=0,knightC=0,defenderC=0;
     int wood=0,stone=0,iron=0,food=0;
 
+    WINDOW * VisualCreation();
+    void windowCreation(int yMax, int xMax);
     void choicesCreation();
     void costCreationTroop(int food,Player * p); 
     void costCreationBuildings(int wood,int stone,int iron,int food,Player * p);
 
 public:
-    ViewController(WINDOW * menuWindow, WINDOW * submenuWindow, WINDOW * resourceWindow,WINDOW * inputWindow,WINDOW * mapWindow);
+    ViewController();
     ~ViewController();
 
     int getMenuMV(); 
@@ -62,10 +64,50 @@ public:
     int getChoice1();
     int getChoice2();
 
+    void updateStart(int &numOfPlayer, int &numOfAi);
     void update(Player * p,int playerNum);
     void refresh();
     
+    
 };
+
+void ViewController::windowCreation(int yMax,int xMax){
+    //windows Created    
+        //resourse window
+        reswin = newwin(yMax*5/8,xMax*7/16,0,0); 
+        box(reswin,0,0); //create box
+        refresh();
+        wrefresh(reswin);
+        keypad(reswin,true);
+
+        //main menu Window
+        menuwin = newwin((yMax*3/8)+1,xMax*2/8,yMax*5/8,0); //new window
+        box(menuwin,0,0); //create box
+        refresh();
+        wrefresh(menuwin);
+        keypad(menuwin,true);
+
+        //sub menu Window
+        submenuwin = newwin((yMax*3/8)+1,xMax*2/8,yMax*5/8,xMax*2/8); //new window
+        box(submenuwin,0,0); //create box
+        refresh();
+        wrefresh(submenuwin);
+        keypad(submenuwin,true);
+        
+        //Input Window
+        inwin = newwin((yMax*3/8)+1,xMax*4/8,yMax*5/8,xMax*4/8); //new window
+        box(inwin,0,0); //create box
+        refresh();
+        wrefresh(inwin);
+        keypad(inwin,true);
+
+        //Map Window
+        mapwin = newwin(yMax*5/8,xMax*9/16,0,xMax*7/16); //new window
+        box(mapwin,0,0); //create box
+        refresh();
+        wrefresh(mapwin);
+        keypad(mapwin,true);
+}
 
 //Gets the input from menuWin and changes highlight1
 int ViewController::getMenuMV()
@@ -201,8 +243,8 @@ int ViewController::getInputMenuMV(){
 
             case KEY_DOWN:
                 highlight4col++;
-                if(highlight4col == 4){
-                    highlight4col = 3;
+                if(highlight4col == 5){
+                    highlight4col = 4;
                 }
                 break;
             default:
@@ -210,6 +252,10 @@ int ViewController::getInputMenuMV(){
         }
 
         if(choice3 == 10){
+            if(highlight4col == 4){
+                return 0;//selected choice
+            }
+
             if(highlight4row==0){
                 switch(highlight4col){
                     case 0:
@@ -248,8 +294,6 @@ int ViewController::getInputMenuMV(){
                         defenderC++;
                         break;
                 }
-            }else{
-                return 0; //choice selected
             }
         }
 
@@ -282,6 +326,8 @@ void ViewController::resetMenu(){
     highlight1 = 0;
     highlight2 = -1;
     highlight3 = -1;
+    highlight4col = -1;
+    highlight4row = -1;
     count = 1;
 }
 
@@ -323,14 +369,11 @@ void ViewController::costCreationBuildings(int wood,int stone,int iron,int food,
 }
 
 //Connects all the windows and preps the Menu
-ViewController::ViewController(WINDOW * menuWindow, WINDOW * submenuWindow, WINDOW * resourceWindow,WINDOW * inputWindow,WINDOW * mapWindow)
-{
-    menuwin = menuWindow;
-    submenuwin = submenuWindow;
-    reswin = resourceWindow;
-    inwin = inputWindow;
-    mapwin = mapWindow;
-
+ViewController::ViewController()
+{   
+    int yMax, xMax;
+    getmaxyx(stdscr,yMax,xMax);
+    windowCreation(yMax,xMax);
     choicesCreation();
 }
 
@@ -381,9 +424,172 @@ int ViewController::getChoice2()
     return this->highlight2;
 }
 
+WINDOW * ViewController::VisualCreation(){
+    int yMax,xMax;
+    getmaxyx(stdscr,yMax,xMax);
+
+    WINDOW * newWin = newwin(yMax/2,xMax/2,yMax/4,xMax/4); 
+    box(newWin,0,0); //create box
+    refresh();
+    wrefresh(newWin);
+    keypad(newWin,true);
+
+    return newWin;
+}
+
+//Does the start of the game
+void ViewController::updateStart(int &numOfPlayer, int &numOfAi){
+    
+    WINDOW * win = VisualCreation();
+    bool dontEndStartGame = true;
+    int Input = 0;
+    highlight1= 0;
+    highlight2= 0;
+    numOfPlayer = 1;
+    numOfAi = 0;
+
+    mvwprintw(win,0,1,"Welcome to Village War Game:");
+    mvwprintw(win,1,1,"                  Made by Jacob Deguara");
+    mvwprintw(win,2,1," Lets start! By using the Left, Right & Down Keys to move.");
+    mvwprintw(win,3,1,"   Then use the Enter Key to move the add Players or Ai.");
+    mvwprintw(win,4,1,"   Once your done Select the Start Game button to start.");
+    mvwprintw(win,6,1,"Please select the following:");
+    do{
+        mvwprintw(win,8,1,"Num of players: ");
+
+        if(highlight1==0 && highlight2 ==0){
+            wattron(win,A_REVERSE);
+        }
+        wprintw(win,"<");
+        wattroff(win,A_REVERSE);
+
+         wprintw(win,"\t");
+        
+        if(highlight1==1 && highlight2 ==0){
+            wattron(win,A_REVERSE);
+        }
+        wprintw(win,"%d",numOfPlayer);
+        wattroff(win,A_REVERSE);
+
+         wprintw(win,"\t");
+        
+        if(highlight1==2 && highlight2 ==0){
+            wattron(win,A_REVERSE);
+        }
+        wprintw(win,">");
+        wattroff(win,A_REVERSE);
+
+        mvwprintw(win,9,1,"Num of Ai's:\t ");
+
+        if(highlight1==0 && highlight2 ==1){
+            wattron(win,A_REVERSE);
+        }
+        wprintw(win,"<");
+        wattroff(win,A_REVERSE);
+
+         wprintw(win,"\t");
+        
+        if(highlight1==1 && highlight2 ==1){
+            wattron(win,A_REVERSE);
+        }
+        wprintw(win,"%d",numOfAi);
+        wattroff(win,A_REVERSE);
+
+         wprintw(win,"\t");
+        
+        if(highlight1==2 && highlight2 ==1){
+            wattron(win,A_REVERSE);
+        }
+        wprintw(win,">");
+        wattroff(win,A_REVERSE);
+
+        mvwprintw(win,10,1,"\t\t ");
+        if(highlight2==2){
+            wattron(win,A_REVERSE);
+        }
+        wprintw(win,"> Start Game! <" );
+        wattroff(win,A_REVERSE);
+        
+        Input = wgetch(win);
+        switch (Input)
+        {
+        case KEY_LEFT:
+                highlight1--;
+                if(highlight2 == 2){
+                    highlight1 = 1;
+                }else if(highlight1 == -1){
+                    highlight1 = 0;
+                }
+            break;
+        
+        case KEY_RIGHT:
+                highlight1++;
+                if(highlight2 == 2){
+                    highlight1 = 1;
+                }else if(highlight1 == 3){
+                    highlight1 = 2;
+                }
+            break;
+
+        case KEY_UP:
+                highlight2--;
+                if(highlight2 == -1){
+                    highlight2 = 0;
+                }
+            break;
+
+        case KEY_DOWN:
+                highlight2++;
+                if(highlight2 == 3){
+                    highlight2 = 2;
+                }
+            break;
+        
+        case 10:
+            if(highlight2 == 2){
+                dontEndStartGame = false;
+            }else if(highlight1 == 0){ // <
+                if(highlight2 == 0){ // players
+                    if(numOfPlayer != 1){
+                        numOfPlayer--;
+                    }
+                }else{
+                    if(numOfAi != 0){
+                        numOfAi--;
+                    }
+                }
+            }else if(highlight1 == 2){ // >
+                if(highlight2 == 0){
+                    if(numOfPlayer != 10){
+                        numOfPlayer++;
+                    }
+                }else{
+                    if(numOfAi != 5){
+                        numOfAi++;
+                    }
+                }
+            }
+
+        default:
+            break;
+        }
+
+    }while(dontEndStartGame); 
+
+    wclear(win);
+    wrefresh(win);
+}
+
 //Re-Writes(updates) the View cash to change any changes
 void ViewController::update(Player * p,int playerNum){
     const char * str;
+
+    //rest boxes incase of clears
+    box(menuwin,0,0);
+    box(reswin,0,0);
+    box(submenuwin,0,0);
+    box(mapwin,0,0);
+    box(inwin,0,0);
 
     //Menu window  
     mvwprintw(menuwin,0,1,"Menu-(UP/DOWN/LEFT)");
@@ -513,15 +719,15 @@ void ViewController::update(Player * p,int playerNum){
             switch (highlight1){
             case 0:
                 costCreationBuildings(2,2,0,0,p);                                                                                 //create wood cutter
-                mvwprintw(inwin,1,1,"Create more Wood Cutters ");
+                mvwprintw(inwin,1,1,"<Create more Wood Cutters> ");
             break;
             case 1:
                 costCreationBuildings(2,2,2,1,p);
-                mvwprintw(inwin,1,1,"Upgrading the Wood Cutter");
+                mvwprintw(inwin,1,1,"<Upgrading the Wood Cutter>");
             break;
             case 2:
                 costCreationTroop(1,p);
-                mvwprintw(inwin,1,1,"Train the Archers        ");
+                mvwprintw(inwin,1,1,"<Train the Archers>        ");
             break;
             default:
                 costCreationBuildings(0,0,0,0,p);
@@ -534,15 +740,15 @@ void ViewController::update(Player * p,int playerNum){
             switch (highlight1){
             case 0:
                 costCreationBuildings(2,0,2,0,p);
-                mvwprintw(inwin,1,1,"Create more Stone Miners ");
+                mvwprintw(inwin,1,1,"<Create more Stone Miners> ");
             break;
             case 1:
                 costCreationBuildings(3,0,3,1,p);
-                mvwprintw(inwin,1,1,"Upgrades the Stone Miner ");
+                mvwprintw(inwin,1,1,"<Upgrades the Stone Miner> ");
             break;
             case 2:
                 costCreationTroop(1,p);
-                mvwprintw(inwin,1,1,"Train the Knights        ");
+                mvwprintw(inwin,1,1,"<Train the Knights>        ");
             break;
             default:
                 costCreationBuildings(0,0,0,0,p);
@@ -555,15 +761,15 @@ void ViewController::update(Player * p,int playerNum){
             switch (highlight1){
             case 0:
                 costCreationBuildings(3,2,0,0,p);                                                                                 //create iron miner
-                mvwprintw(inwin,1,1,"Create more Iron Miners  ");
+                mvwprintw(inwin,1,1,"<Create more Iron Miners>  ");
             break;
             case 1:
                 costCreationBuildings(3,3,0,1,p);
-                mvwprintw(inwin,1,1,"Upgrades the Iron Miner  ");
+                mvwprintw(inwin,1,1,"<Upgrades the Iron Miner>  ");
             break;
             case 2:
                 costCreationTroop(1,p);
-                mvwprintw(inwin,1,1,"Train the Defenders     ");
+                mvwprintw(inwin,1,1,"<Train the Defenders>     ");
             break;
             default:
                 costCreationBuildings(0,0,0,0,p);
@@ -574,10 +780,10 @@ void ViewController::update(Player * p,int playerNum){
         case 3:
             if(highlight1==0){                                                                                   //create Battle Trainer
                 costCreationBuildings(2,2,2,0,p);
-                mvwprintw(inwin,1,1,"Create more Food stalls  ");
+                mvwprintw(inwin,1,1,"<Create more Food stalls>  ");
             }else if(highlight1==1){                                                                             // Upgrade Battle Trainer
                 costCreationBuildings(2,2,2,0,p);
-                mvwprintw(inwin,1,1,"Upgrades the Battle Tower");
+                mvwprintw(inwin,1,1,"<Upgrades the Battle Tower>");
             }
             mvwprintw(inwin,2,1,"Wood: %d , Stone: %d , Iron: %d , Food %d         ",wood,stone,iron,food);
         break;
@@ -585,10 +791,10 @@ void ViewController::update(Player * p,int playerNum){
         case 4:
             if(highlight1==0){                                                                                   //create Archer place
                 costCreationBuildings(2,2,0,2,p);
-                mvwprintw(inwin,1,1,"Creates more Archers     "); 
+                mvwprintw(inwin,1,1,"<Creates more Archers>     "); 
             }else if(highlight1==1){  
                 costCreationBuildings(2,0,2,1,p);                                                                           // Upgrade Archer place
-                mvwprintw(inwin,1,1,"Upgrade The Range        ");
+                mvwprintw(inwin,1,1,"<Upgrade The Range>        ");
             }
             mvwprintw(inwin,2,1,"Wood: %d , Stone: %d , Iron: %d , Food %d         ",wood,stone,iron,food);
         break;
@@ -596,10 +802,10 @@ void ViewController::update(Player * p,int playerNum){
         case 5:
             if(highlight1==0){  
                 costCreationBuildings(1,1,1,2,p);                                                                                 //create Knight place
-                mvwprintw(inwin,1,1,"Creates more Knights     ");
+                mvwprintw(inwin,1,1,"<Creates more Knights>     ");
             }else if(highlight1==1){                                                                             // Upgrade Knight place
                 costCreationBuildings(1,1,1,1,p);
-                mvwprintw(inwin,1,1,"Upgrades The Palace      ");
+                mvwprintw(inwin,1,1,"<Upgrades The Palace>      ");
             }
             mvwprintw(inwin,2,1,"Wood: %d , Stone: %d , Iron: %d , Food %d         ",wood,stone,iron,food);
         break;
@@ -607,17 +813,13 @@ void ViewController::update(Player * p,int playerNum){
         case 6:
             if(highlight1==0){   
                 costCreationBuildings(1,1,1,3,p);                                                                                //create Defender place
-                mvwprintw(inwin,1,1,"Creates more Defenders   ");
+                mvwprintw(inwin,1,1,"<Creates more Defenders>   ");
             }else if(highlight1==1){                                                                             // Upgrade Defender place
                 costCreationBuildings(1,2,1,1,p);
-                mvwprintw(inwin,1,1,"Upgrades the Barackes    ");
+                mvwprintw(inwin,1,1,"<Upgrades the Barackes>    ");
             }
             mvwprintw(inwin,2,1,"Wood: %d , Stone: %d , Iron: %d , Food %d         ",wood,stone,iron,food);
         break;
-
-        default:
-            
-            break;
         }
 
         if(highlight2 != -1){
@@ -627,11 +829,13 @@ void ViewController::update(Player * p,int playerNum){
                 mvwprintw(inwin,3,1,"<");
                 wattroff(inwin,A_REVERSE);
                 
+                wprintw(inwin,"\t");
                 if(highlight3 == 1){
                     wattron(inwin,A_REVERSE);
                 }
-                wprintw(inwin,"\t%d\t",count);
+                wprintw(inwin,"%d",count);
                 wattroff(inwin,A_REVERSE);
+                wprintw(inwin,"\t");
                 
                 if(highlight3 == 2){
                     wattron(inwin,A_REVERSE);
@@ -642,25 +846,40 @@ void ViewController::update(Player * p,int playerNum){
                 mvwprintw(inwin,3,1," \t   \t ");
             }
     }else{
-        mvwprintw(inwin,1,1,"                         ");
+        mvwprintw(inwin,1,1,"                                                  ");
         mvwprintw(inwin,2,1,"                                                  ");
-        mvwprintw(inwin,3,1," \t   \t ");
+        mvwprintw(inwin,3,1,"                                                  ");
     }
 
-    /* <    Locaction   > 1,2,3 clm 0
-         * <    Archer      > 1,2,3 clm 1
-         * <    Knight      > 1,2,3 clm 2
-         * <    Defender    > 1,2,3 clm 3
-         */
     if(highlight1 == 3 && highlight2 == 0){
+        int num = 0;
+
         for (size_t i = 0; i < 4; i++){
-            int num = 0;
+            
+            switch(i){
+                case 0:
+                str = "Location: \t";
+                break;
+                case 1:
+                str = "Archers:  \t";
+                break;
+                case 2:
+                str = "Knights:  \t";
+                break;
+                case 3:
+                str = "Defenders:\t";
+                break;
+            }
+
+            mvwprintw(inwin,1+i,1,"%s",str);
+
             if(highlight4col == i && highlight4row == 0){
                 wattron(inwin,A_REVERSE);
             }
-            mvwprintw(inwin,1+i,1,"<");
+            wprintw(inwin,"<");
             wattroff(inwin,A_REVERSE);
             
+            wprintw(inwin,"\t");
             if(highlight4col == i && highlight4row == 1){
                 wattron(inwin,A_REVERSE);
             }
@@ -678,8 +897,9 @@ void ViewController::update(Player * p,int playerNum){
                 num = defenderC;
                 break;
             }
-            wprintw(inwin,"\t%d\t",num);
+            wprintw(inwin,"%d",num);
             wattroff(inwin,A_REVERSE);
+            wprintw(inwin,"\t");
                 
             if(highlight4col == i && highlight4row == 2){
                 wattron(inwin,A_REVERSE);
@@ -687,12 +907,36 @@ void ViewController::update(Player * p,int playerNum){
             wprintw(inwin,">");
             wattroff(inwin,A_REVERSE);
         }
+
+        mvwprintw(inwin,5,1,"After selecting your troops, Select your objective:");
+
+        if(highlight4col == 4 && highlight4row == 0){
+            wattron(inwin,A_REVERSE);
+        }
+        mvwprintw(inwin,6,1,"Attack Fully");
+        wattroff(inwin,A_REVERSE);
+
+        wprintw(inwin,"  ");
+        if(highlight4col == 4 && highlight4row == 1){
+            wattron(inwin,A_REVERSE);
+        }        
+        wprintw(inwin,"Attack Safely");
+        wattroff(inwin,A_REVERSE);
+
+        wprintw(inwin,"  ");
+        if(highlight4col == 4 && highlight4row == 2){
+            wattron(inwin,A_REVERSE);
+        }
+        wprintw(inwin,"Attack Gainfully");
+        wattroff(inwin,A_REVERSE);
         
     }else{
-        mvwprintw(inwin,4,1," \t   \t ");
+        mvwprintw(inwin,4,1,"\t\t\t\t\t\t");
+        mvwprintw(inwin,5,1,"\t\t\t\t\t\t\t\t");
+        mvwprintw(inwin,6,1,"\t\t\t\t\t\t\t\t");
     }
     //Map Window
-    mvwprintw(mapwin,0,1,"Map");
+    mvwprintw(mapwin,0,1,"Map-Player:-%d",p->getID());
 
 }
 

@@ -15,6 +15,7 @@ private:
 
     //Visual & Control
     ViewController * VC;
+    WINDOW * VisualCreation();
 
     //Players Resaources and Manipulation
     vector<Player> p;
@@ -24,29 +25,43 @@ private:
         int Current;
         vector<int> removed;
     }PlayersNumbers;
-
-public:
-
-    /*constuctor*/
-    Game(int NumOfPlayers,WINDOW * menuWindow, WINDOW * submenuWindow, WINDOW * resourceWindow,WINDOW * inputWindow,WINDOW * mapWindow); //constuctor
-    ~Game();
     
     int actionTaken(); // will take the selected action and run it
     void endRound();
 
-    int getNum();
+public:
+
+    /*constuctor*/
+    Game(); //constuctor
+    ~Game();
+
+    void StartGame();
+    int Menu();
+    
     int gameLoop();
+
+    int getNum();
 };
 
-Game::Game(int NumOfPlayers,WINDOW * menuWindow, WINDOW * submenuWindow, WINDOW * resourceWindow,WINDOW * inputWindow,WINDOW * mapWindow){
-    
-    PlayersNumbers.Current = 0;
-    PlayersNumbers.Max = PlayersNumbers.Max = NumOfPlayers;
-    for(int i=0;i < NumOfPlayers;i++){
-        p.push_back(Player());
-    }
-    VC = new ViewController(menuWindow,submenuWindow,resourceWindow,inputWindow,mapWindow);
+Game::Game(){
 
+    VC = new ViewController();
+
+}
+
+//This should be done before the game starts
+void Game::StartGame(){
+    int numOfPlayer,numOfAi;
+
+    VC->updateStart(numOfPlayer,numOfAi);
+
+    PlayersNumbers.Current = 0;
+    PlayersNumbers.Max = numOfPlayer;
+    p.assign(PlayersNumbers.Max,Player());
+
+    for(int i=0;i < PlayersNumbers.Max;i++){
+        p[i].setID(i);
+    }
 }
 
 Game::~Game(){
@@ -97,6 +112,7 @@ void Game::endRound(){
 int Game::gameLoop(){
     int whichMenuNum = -1;
     bool dontExit = true, notSurrendered = true;
+    
     do{
         //if true do game loop 
         if(notSurrendered == true){
@@ -138,7 +154,9 @@ int Game::gameLoop(){
 
                 whichMenuNum = actionTaken();
                 if(whichMenuNum == 0){ //attack
-                    //do nothing
+                    //attack protocal goes here
+                    endRound();
+                    VC->resetMenu();
                 }else if(whichMenuNum == 1){ //ended the his turn
                     endRound();
                     PlayersNumbers.Current++;
@@ -150,8 +168,8 @@ int Game::gameLoop(){
                     dontExit = false;
                     PlayersNumbers.Max--;
                     p.erase(p.begin() + PlayersNumbers.Current);
-                    if(PlayersNumbers.Max >= PlayersNumbers.Current){
-                       PlayersNumbers.Current = PlayersNumbers.Max -1;
+                    if(PlayersNumbers.Current == PlayersNumbers.Max){
+                        PlayersNumbers.Current = 0;   
                     }
                 }
 

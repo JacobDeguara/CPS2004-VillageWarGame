@@ -16,6 +16,7 @@ using std::shared_ptr;
 class Player
 {
 private:
+    int ID;
     int x,y; //coords
     int health; // hp of Village
     struct{
@@ -29,6 +30,8 @@ private:
 public:
     Player();
     ~Player();
+    void setID(int newID);
+    int getID();
     int getWood();
     int getIron();
     int getStone();
@@ -70,6 +73,14 @@ Player::Player()
 
 Player::~Player(){
     
+}
+
+void Player::setID(int newID){
+    ID = newID;
+}
+
+int Player::getID(){
+    return ID;
 }
 
 int Player::getWood(){
