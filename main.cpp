@@ -17,8 +17,12 @@ int main(void){
     m->StartGame();
     m->gameLoop();
 
-    cout << m->getNum()<< endl;
     endwin();
+    for (size_t i = 0; i < m->M->getMax(); i++)
+    {
+        cout << m->M->getPosX(i)<<" "<<m->M->getPosY(i)<< endl;
+    }
+
     delete m;
 	return 0;
 }

@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 #include "Player.hpp"
+#include "Map.hpp"
 #include "ViewController.hpp"
 
 #ifndef _Game_H_
@@ -15,6 +16,7 @@ private:
 
     //Visual & Control
     ViewController * VC;
+    
     WINDOW * VisualCreation();
 
     //Players Resaources and Manipulation
@@ -30,6 +32,8 @@ private:
     void endRound();
 
 public:
+
+    Map * M;
 
     /*constuctor*/
     Game(); //constuctor
@@ -61,6 +65,8 @@ void Game::StartGame(){
         p.push_back(Player());
         p[i].setID(i);
     }
+
+    M = new Map(&p,PlayersNumbers.Max);
 }
 
 Game::~Game(){
@@ -117,14 +123,15 @@ int Game::gameLoop(){
         if(notSurrendered == true){
             dontExit = true;
             //this is the menu loops
+            VC->updateMap(M);
             do{
                 VC->resetMenu();
                 whichMenuNum = -1;
                 do{
-                    VC->update(&p[PlayersNumbers.Current],PlayersNumbers.Current);
+                    VC->update(&p[PlayersNumbers.Current],PlayersNumbers.Current,M);
                     VC->refresh();
                     while(whichMenuNum == -1){
-                        VC->update(&p[PlayersNumbers.Current],PlayersNumbers.Current);
+                        VC->update(&p[PlayersNumbers.Current],PlayersNumbers.Current,M);
                         VC->refresh();   
                         whichMenuNum = VC->getMenuMV();
                     }
@@ -134,7 +141,7 @@ int Game::gameLoop(){
                     }
 
                     while(whichMenuNum == -2){
-                        VC->update(&p[PlayersNumbers.Current],PlayersNumbers.Current);
+                        VC->update(&p[PlayersNumbers.Current],PlayersNumbers.Current,M);
                         VC->refresh();
                         whichMenuNum = VC->getSubMenuMV();
                     }   
@@ -144,7 +151,7 @@ int Game::gameLoop(){
                     }
 
                     while(whichMenuNum == -3){
-                        VC->update(&p[PlayersNumbers.Current],PlayersNumbers.Current);
+                        VC->update(&p[PlayersNumbers.Current],PlayersNumbers.Current,M);
                         VC->refresh();
                         whichMenuNum = VC->getInputMenuMV();
                     }
@@ -183,7 +190,7 @@ int Game::gameLoop(){
 }
 
 int Game::getNum(){
-    return PlayersNumbers.Max;
+   return p[0].getX();
 }
 
 #endif

@@ -4,6 +4,7 @@
 #include <array>
 
 #include "Player.hpp"
+#include "Map.hpp"
 
 #ifndef __VIEWCONTROLLER_H__
 #define __VIEWCONTROLLER_H__
@@ -65,7 +66,8 @@ public:
     int getChoice2();
 
     void updateStart(int &numOfPlayer, int &numOfAi);
-    void update(Player * p,int playerNum);
+    void update(Player * p,int playerNum,Map * m);
+    void updateMap(Map * m);
     void refresh();
     
     
@@ -581,7 +583,7 @@ void ViewController::updateStart(int &numOfPlayer, int &numOfAi){
 }
 
 //Re-Writes(updates) the View cash to change any changes
-void ViewController::update(Player * p,int playerNum){
+void ViewController::update(Player * p,int playerNum,Map * m){
     const char * str;
 
     //rest boxes incase of clears
@@ -935,9 +937,42 @@ void ViewController::update(Player * p,int playerNum){
         mvwprintw(inwin,5,1,"\t\t\t\t\t\t\t\t");
         mvwprintw(inwin,6,1,"\t\t\t\t\t\t\t\t");
     }
+
     //Map Window
     mvwprintw(mapwin,0,1,"Map-Player:-%d",p->getID());
 
+    int x,y;
+    x = m->getPosX(playerNum);
+    y = m->getPosY(playerNum);
+    wprintw(mapwin,"-x=%d-y=%d",x,y);
+        
+        wattron(mapwin,A_BLINK);
+        wattron(mapwin,A_REVERSE);    
+    mvwprintw(mapwin,y,x,"O");
+        wattroff(mapwin,A_REVERSE);
+        wattroff(mapwin,A_BLINK);
+    
+}
+
+void ViewController::updateMap(Map * m){
+    for (size_t y = 0; y < 18; y++)
+    {
+        wmove(mapwin,1+y,1);
+        for (size_t x = 0; x < 89; x++)
+        {
+            wprintw(mapwin,"0");
+       }
+    }
+
+    for (size_t i = 0; i < m->getMax(); i++)
+    {
+        wattron(mapwin,A_REVERSE);
+        wmove(mapwin,m->getPosY(i),m->getPosX(i));
+        wprintw(mapwin,"O");
+        wattroff(mapwin,A_REVERSE);
+    }
+
+    
 }
 
 //Refreshes the View for the Viewer to see then change
