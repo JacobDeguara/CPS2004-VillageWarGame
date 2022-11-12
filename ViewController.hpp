@@ -36,7 +36,7 @@ private:
     int highlight3 =-1;
     int highlight4row =-1;
     int highlight4col =-1;
-    int count = 1;
+    int count = 1,playerCount = 0;
     int archerC=0,knightC=0,defenderC=0;
     int wood=0,stone=0,iron=0,food=0;
 
@@ -52,10 +52,11 @@ public:
 
     int getMenuMV(); 
     int getSubMenuMV(); 
-    int getInputMenuMV(); 
+    int getInputMenuMV(Map * m); 
     void prepSubMenu();
-    void prepInputMenu(); 
+    void prepInputMenu(Map * m); 
     void resetMenu(); 
+    int resetMenuPartial(); 
 
     int getCount();
     int getWoodCost();
@@ -171,13 +172,15 @@ int ViewController::getSubMenuMV()
             break;
     }
     if(choice2 == 10){
-        return 0; //choice selected
+        if(!(highlight2 == 0 && highlight1 == 3)){ // < attack
+            return 0; //choice selected
+        }
     }
     return -2; // -1 is default loop for sub menu
 }
 
 //Gets the input from inputWin and changes highlight3 accordingly
-int ViewController::getInputMenuMV(){
+int ViewController::getInputMenuMV(Map * m){
     if(highlight1 != 3){ // if choice1 = 1-3 
         highlight4col = highlight4row =-1;
         int choice3 = wgetch(inwin);
@@ -257,13 +260,22 @@ int ViewController::getInputMenuMV(){
             if(highlight4col == 4){
                 return 0;//selected choice
             }
-
+            int temp;
             if(highlight4row==0){
                 switch(highlight4col){
                     case 0:
-                        if(count != 1){
-                            count--;
-                        }
+                        
+                        playerCount--;
+                        if(playerCount == -1){
+                            playerCount = m->getMax()-1;
+                        } 
+                        while(m->IsPlayerDead(playerCount)){ //check if current player is dead
+                            playerCount--; // reduce by once since thats what it does
+                            if(playerCount == -1){ // checks if we whent beyond the 0-Max
+                                playerCount = m->getMax()-1; // reverts to Max
+                            }
+                        }                   
+
                         break;
                     case 1:
                         if(archerC != 0){
@@ -284,7 +296,20 @@ int ViewController::getInputMenuMV(){
             }else if(highlight4row==2){
                 switch(highlight4col){
                     case 0:
-                        count++;
+                        
+                        playerCount++;
+                        if (playerCount >= m->getMax())
+                        {
+                            playerCount = 0;
+                        }
+                        while (m->IsPlayerDead(playerCount))
+                        {
+                            playerCount++; // add by once since thats what it does
+                            if(playerCount >= m->getMax()){ // checks if we whent beyond the 0-Max
+                                playerCount = 0; // reverts to 0
+                            }
+                        }
+                        
                         break;
                     case 1:
                         archerC++;
@@ -308,11 +333,13 @@ int ViewController::getInputMenuMV(){
 
 //prepares the change from menuWin to submenuWin
 void ViewController::prepSubMenu(){
-    highlight2 = 0;
+    if(highlight2 == -1){
+        highlight2 = 0;
+    }  
 }
 
 //prepares the change from submenuWin to inputWin
-void ViewController::prepInputMenu(){
+void ViewController::prepInputMenu(Map * m){
     count = 1;
     archerC =0;
     knightC = 0;
@@ -321,6 +348,10 @@ void ViewController::prepInputMenu(){
     highlight4col = 0;
     highlight4row = 0;
 
+    playerCount = 0;
+    while(m->IsPlayerDead(playerCount)){
+        playerCount++;
+    }
 }
 
 //resets the menu back to menuWin
@@ -330,7 +361,24 @@ void ViewController::resetMenu(){
     highlight3 = -1;
     highlight4col = -1;
     highlight4row = -1;
+    archerC =0;
+    knightC = 0;
+    defenderC = 0;
     count = 1;
+    playerCount = 0;
+}
+
+int ViewController::resetMenuPartial(){
+    highlight3 = -1;
+    highlight4col = -1;
+    highlight4row = -1;
+    count = 1;
+    playerCount = 0;
+    if(highlight2 == -1){
+        return -1;
+    }else{
+        return -2;
+    }
 }
 
 //Gives The stuct MenuNames all the Strings for the menus
@@ -855,13 +903,51 @@ void ViewController::update(Player * p,int playerNum,Map * m){
 
     if(highlight1 == 3 && highlight2 == 0){
         int num = 0;
+        size_t i = 0;
 
-        for (size_t i = 0; i < 4; i++){
+        str = "Location: \t";
+        mvwprintw(inwin,1+i,1,"%s",str);
+
+        if(highlight4col == i && highlight4row == 0){
+            wattron(inwin,A_REVERSE);
+        }
+        wprintw(inwin,"<");
+        wattroff(inwin,A_REVERSE);
+            
+        wprintw(inwin," ");
+        if(highlight4col == i && highlight4row == 1){
+            wattron(inwin,A_REVERSE);
+        }
+        
+        int x = m->getPosX(playerCount);
+        int y = m->getPosY(playerCount);
+
+        if(playerNum != -1){
+            wprintw(inwin,"x:%d y:%d ID:%d",x,y,playerCount);
+        }else{
+            wprintw(inwin,"KILL SOMEONE YES!");
+        }
+        wattroff(inwin,A_REVERSE);
+
+        if(!(x >= 10)){
+            wprintw(inwin," ");
+        }
+        if(!(y >= 10)){
+            wprintw(inwin," ");
+        }
+        if(!(playerCount >= 10)){
+            wprintw(inwin," ");
+        }
+       
+        if(highlight4col == i && highlight4row == 2){
+            wattron(inwin,A_REVERSE);
+        }
+        wprintw(inwin,">");
+        wattroff(inwin,A_REVERSE);
+
+        for (i = 1; i < 4; i++){
             
             switch(i){
-                case 0:
-                str = "Location: \t";
-                break;
                 case 1:
                 str = "Archers:  \t";
                 break;
@@ -886,9 +972,6 @@ void ViewController::update(Player * p,int playerNum,Map * m){
                 wattron(inwin,A_REVERSE);
             }
             switch(i){
-                case 0:
-                num = count;
-                break;
                 case 1:
                 num = archerC;
                 break;
@@ -901,7 +984,7 @@ void ViewController::update(Player * p,int playerNum,Map * m){
             }
             wprintw(inwin,"%d",num);
             wattroff(inwin,A_REVERSE);
-            wprintw(inwin,"\t");
+            wprintw(inwin,"\t ");
                 
             if(highlight4col == i && highlight4row == 2){
                 wattron(inwin,A_REVERSE);
@@ -934,31 +1017,48 @@ void ViewController::update(Player * p,int playerNum,Map * m){
         
     }else{
         mvwprintw(inwin,4,1,"\t\t\t\t\t\t");
-        mvwprintw(inwin,5,1,"\t\t\t\t\t\t\t\t");
-        mvwprintw(inwin,6,1,"\t\t\t\t\t\t\t\t");
+        mvwprintw(inwin,5,1,"\t\t\t\t\t\t\t");
+        mvwprintw(inwin,6,1,"\t\t\t\t\t\t\t");
     }
 
     //Map Window
     mvwprintw(mapwin,0,1,"Map-Player:-%d",p->getID());
 
     int x,y;
-    x = m->getPosX(playerNum);
-    y = m->getPosY(playerNum);
+    x = m->getPosX(p->getID());
+    y = m->getPosY(p->getID());
+
     wprintw(mapwin,"-x=%d-y=%d",x,y);
+
+    updateMap(m);
         
+    //bug here dont know why 
+    //just doesnt print for some reason
+    //bug log | x=32 y=20 | x=53 y=18
         wattron(mapwin,A_BLINK);
-        wattron(mapwin,A_REVERSE);    
-    mvwprintw(mapwin,y,x,"O");
+        wattron(mapwin,A_REVERSE);
+        mvwprintw(mapwin,y,x,"O");
         wattroff(mapwin,A_REVERSE);
         wattroff(mapwin,A_BLINK);
+
+    if(highlight1 == 3 && highlight2 == 0){
+        x = m->getPosX(playerCount);
+        y = m->getPosY(playerCount);
+        
+        wattron(mapwin,A_BLINK);
+        wattron(mapwin,A_REVERSE);
+        mvwprintw(mapwin,y+1,x,"^");
+        wattroff(mapwin,A_REVERSE);
+        wattroff(mapwin,A_BLINK);
+    }
     
 }
 
 void ViewController::updateMap(Map * m){
-    for (size_t y = 0; y < 18; y++)
+    for (size_t y = 0; y < 16; y++)
     {
         wmove(mapwin,1+y,1);
-        for (size_t x = 0; x < 89; x++)
+        for (size_t x = 0; x < 65; x++)
         {
             wprintw(mapwin,"0");
        }
@@ -967,8 +1067,29 @@ void ViewController::updateMap(Map * m){
     for (size_t i = 0; i < m->getMax(); i++)
     {
         wattron(mapwin,A_REVERSE);
+        
+        if(has_colors()){
+
+            start_color();
+            init_pair(1,COLOR_WHITE,COLOR_RED);
+
+            if(m->IsPlayerDead(i)){
+                wattron(mapwin,COLOR_PAIR(1));
+            }
+        }
+
+        if(m->IsPlayerDead(i)){
+            wattron(mapwin,A_DIM);
+        }
+
         wmove(mapwin,m->getPosY(i),m->getPosX(i));
         wprintw(mapwin,"O");
+
+        if(has_colors()){
+            wattroff(mapwin,COLOR_PAIR(1));
+        }
+
+        wattroff(mapwin,A_DIM);
         wattroff(mapwin,A_REVERSE);
     }
 

@@ -18,16 +18,21 @@ class Map
 {
 private:
     vector<pos> position;
+    vector<int> IsDead;
     int Max;
 
     pos make_pos(int x,int y);
 public:
-    Map(vector<Player> * p,int maxNumOfPlayers);
+    Map(int maxNumOfPlayers);
     ~Map();
 
     int getPosX(int i);
     int getPosY(int i);
     int getMax();
+
+    void PlayerIsDead(int ID);
+    bool IsPlayerDead(int ID);
+    
 };
 
 pos Map::make_pos(int x, int y) {
@@ -35,7 +40,7 @@ pos Map::make_pos(int x, int y) {
     return mypos;
 }
 
-Map::Map(vector<Player> * p,int maxNumOfPlayers)
+Map::Map(int maxNumOfPlayers)
 {
     srand(time(0));
     //we have a map of 16/65 which mean each player has to sit in one of these pos with close to even spacing
@@ -58,7 +63,6 @@ Map::Map(vector<Player> * p,int maxNumOfPlayers)
     // do 0,0 box
     randX = 1 + (offsetX*offsetdistX + rand()%rangeX);
     randY = 1 + (offsetY*offsetdistY + rand()%rangeY);
-    p->at(0).setXY(randX,randY); //we set X Y of P[0]
     position.push_back(make_pos(randX,randY));
 
     //we move xoffset by 1 but get a random y offset
@@ -68,14 +72,22 @@ Map::Map(vector<Player> * p,int maxNumOfPlayers)
         //this is so we dont get the same pos
         do{
             temp = offsetdistY;
-            offsetdistY = 0+rand()%Max;
-        }while(temp == offsetdistY);
+            offsetdistY = 0+rand()%(Max+1);
+        }while(temp == offsetdistY || temp == offsetdistY+1 || temp == offsetdistY -1);
 
         randX = 1 + (offsetX*offsetdistX + rand()%rangeX);
         randY = 1 + (offsetY*offsetdistY + rand()%rangeY);
-        p->at(offsetdistX).setXY(randX,randY); //we set X Y of P[0]
+
+        while(randY >= 17){
+            randY--;
+        }
+        
         position.push_back(make_pos(randX,randY));   
     }
+
+
+    //assign all player not dead
+    IsDead.assign(Max,false);
 }
 
 Map::~Map()
@@ -92,6 +104,14 @@ int Map::getPosY(int i){
 
 int Map::getMax(){
     return Max;
+}
+
+void Map::PlayerIsDead(int ID){
+    IsDead.at(ID) = true;
+}
+
+bool Map::IsPlayerDead(int ID){
+    return IsDead.at(ID) == true;
 }
 
 #endif // __MAP_H__

@@ -17,7 +17,7 @@ class Player
 {
 private:
     int ID;
-    int x,y; //coords
+
     int health= 100; // hp of Village
     struct{
         int wood =999;
@@ -31,10 +31,6 @@ public:
     Player()=default;
     ~Player()= default;
     void setID(int newID);
-    void setXY(int x,int y);
-    bool CheckXY(int x,int y);
-    int getX();
-    int getY();
     int getID();
     int getWood();
     int getIron();
@@ -66,26 +62,6 @@ public:
 
 void Player::setID(int newID){
     ID = newID;
-}
-
-void Player::setXY(int x, int y){
-    this->x = x;
-    this->y = y;
-}
-
-bool Player::CheckXY(int x, int y){
-    if(this->x == x && this->y == y){
-        return true;
-    }
-    return false;
-}
-
-int Player::getX(){
-    return x;
-}
-
-int Player::getY(){
-    return y;
 }
 
 int Player::getID(){

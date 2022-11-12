@@ -14,14 +14,10 @@ int main(void){
     curs_set(0);
 
     Game * m = new Game();
-    m->StartGame();
+    
     m->gameLoop();
 
     endwin();
-    for (size_t i = 0; i < m->M->getMax(); i++)
-    {
-        cout << m->M->getPosX(i)<<" "<<m->M->getPosY(i)<< endl;
-    }
 
     delete m;
 	return 0;

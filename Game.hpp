@@ -16,6 +16,7 @@ private:
 
     //Visual & Control
     ViewController * VC;
+    Map * M;
     
     WINDOW * VisualCreation();
 
@@ -27,20 +28,20 @@ private:
         int Current;
         vector<int> removed;
     }PlayersNumbers;
+
+    void StartGame();
     
     int actionTaken(); // will take the selected action and run it
     void endRound();
 
+    int attackProtocal();
+
+    void menuLoop(int &whichMenu);
+
 public:
-
-    Map * M;
-
     /*constuctor*/
     Game(); //constuctor
     ~Game();
-
-    void StartGame();
-    int Menu();
     
     int gameLoop();
 
@@ -66,7 +67,7 @@ void Game::StartGame(){
         p[i].setID(i);
     }
 
-    M = new Map(&p,PlayersNumbers.Max);
+    M = new Map(PlayersNumbers.Max);
 }
 
 Game::~Game(){
@@ -118,50 +119,24 @@ int Game::gameLoop(){
     int whichMenuNum = -1;
     bool dontExit = true, notSurrendered = true;
     
+    StartGame();
+    
     do{
         //if true do game loop 
         if(notSurrendered == true){
             dontExit = true;
             //this is the menu loops
             VC->updateMap(M);
+            VC->resetMenu();
             do{
-                VC->resetMenu();
-                whichMenuNum = -1;
-                do{
-                    VC->update(&p[PlayersNumbers.Current],PlayersNumbers.Current,M);
-                    VC->refresh();
-                    while(whichMenuNum == -1){
-                        VC->update(&p[PlayersNumbers.Current],PlayersNumbers.Current,M);
-                        VC->refresh();   
-                        whichMenuNum = VC->getMenuMV();
-                    }
-
-                    if(whichMenuNum == -2){
-                        VC->prepSubMenu();
-                    }
-
-                    while(whichMenuNum == -2){
-                        VC->update(&p[PlayersNumbers.Current],PlayersNumbers.Current,M);
-                        VC->refresh();
-                        whichMenuNum = VC->getSubMenuMV();
-                    }   
-
-                    if(whichMenuNum == -3){
-                        VC->prepInputMenu();
-                    }
-
-                    while(whichMenuNum == -3){
-                        VC->update(&p[PlayersNumbers.Current],PlayersNumbers.Current,M);
-                        VC->refresh();
-                        whichMenuNum = VC->getInputMenuMV();
-                    }
-                    
-                }while(whichMenuNum < 0);
-
+                
+                whichMenuNum = VC->resetMenuPartial();
+                
+                menuLoop(whichMenuNum);
 
                 whichMenuNum = actionTaken();
                 if(whichMenuNum == 0){
-                    VC->resetMenu();
+            
                 }else if(whichMenuNum == 1){ //ended the his turn
                     endRound();
                     PlayersNumbers.Current++;
@@ -169,14 +144,20 @@ int Game::gameLoop(){
                         PlayersNumbers.Current = 0;   
                     }
                     dontExit = false;
+                    VC->resetMenu();
                 }else if(whichMenuNum == -1){ // surrendered
                     dontExit = false;
                     PlayersNumbers.Max--;
+                    //remove player from Map
+                    M->PlayerIsDead(p.at(PlayersNumbers.Current).getID());
+
                     p.erase(p.begin() + PlayersNumbers.Current);
                     if(PlayersNumbers.Current == PlayersNumbers.Max){
                         PlayersNumbers.Current = 0;   
                     }
                 }else if(whichMenuNum == 2){ //attack protocal
+                    
+                    
                     VC->resetMenu();
                     endRound();
                 }
@@ -190,7 +171,40 @@ int Game::gameLoop(){
 }
 
 int Game::getNum(){
-   return p[0].getX();
+    return 0;
+}
+
+void Game::menuLoop(int &whichMenuNum){
+    do{
+        VC->update(&p[PlayersNumbers.Current],PlayersNumbers.Current,M);
+        VC->refresh();
+        while(whichMenuNum == -1){
+        VC->update(&p[PlayersNumbers.Current],PlayersNumbers.Current,M);
+        VC->refresh();   
+        whichMenuNum = VC->getMenuMV();
+        }
+
+        if(whichMenuNum == -2){
+            VC->prepSubMenu();
+        }
+
+        while(whichMenuNum == -2){
+            VC->update(&p[PlayersNumbers.Current],PlayersNumbers.Current,M);
+            VC->refresh();
+            whichMenuNum = VC->getSubMenuMV();
+        }   
+
+        if(whichMenuNum == -3){
+            VC->prepInputMenu(M);
+        }
+
+        while(whichMenuNum == -3){
+            VC->update(&p[PlayersNumbers.Current],PlayersNumbers.Current,M);
+            VC->refresh();
+            whichMenuNum = VC->getInputMenuMV(M);
+        }
+                    
+    }while(whichMenuNum < 0);
 }
 
 #endif
