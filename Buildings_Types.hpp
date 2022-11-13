@@ -83,7 +83,7 @@ ArcheryRange::ArcheryRange() :Buildings(){}
 
 int ArcheryRange::getGen()
 {
-    return amount;
+    return amount+(amount*level);
 };
 
 /*---------------------------*/
@@ -100,7 +100,7 @@ KnightingPalace::KnightingPalace() :Buildings(){}
 
 int KnightingPalace::getGen()
 {
-    return amount;
+    return amount+(amount*level);
 };
 
 /*---------------------------*/
@@ -117,7 +117,7 @@ DefenderBarracks::DefenderBarracks() :Buildings(){}
 
 int DefenderBarracks::getGen()
 {
-    return amount;
+    return amount+(amount*level);
 };
 
 #endif

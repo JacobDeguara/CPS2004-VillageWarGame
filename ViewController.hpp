@@ -3,6 +3,7 @@
 #include <string>
 #include <array>
 
+#include "Attack.hpp"
 #include "Player.hpp"
 #include "Map.hpp"
 
@@ -40,7 +41,7 @@ private:
     int archerC=0,knightC=0,defenderC=0;
     int wood=0,stone=0,iron=0,food=0;
 
-    WINDOW * VisualCreation();
+    WINDOW * VisualCreation(int x1,int y1,int x2,int y2);
     void windowCreation(int yMax, int xMax);
     void choicesCreation();
     void costCreationTroop(int food,Player * p); 
@@ -62,6 +63,7 @@ public:
     void update(Player * p,int playerNum,shared_ptr<Map> m);
     void updateMap(shared_ptr<Map> m);
     void refresh();
+    int StartAttack(shared_ptr<Holder> Attack);
     
     int getCount();
     int getWoodCost();
@@ -76,6 +78,7 @@ public:
     int getAttackChoice();
     int getPlayerCount();
     
+    void sendMsg(string str);
 };
 
 void ViewController::windowCreation(int yMax,int xMax){
@@ -431,11 +434,11 @@ ViewController::ViewController()
     choicesCreation();
 }
 
-WINDOW * ViewController::VisualCreation(){
+WINDOW * ViewController::VisualCreation(int x1,int y1,int x2,int y2){
     int yMax,xMax;
     getmaxyx(stdscr,yMax,xMax);
 
-    WINDOW * newWin = newwin(yMax/2,xMax/2,yMax/4,xMax/4); 
+    WINDOW * newWin = newwin(yMax/y1,xMax/x1,yMax/y2,xMax/x2); 
     box(newWin,0,0); //create box
     refresh();
     wrefresh(newWin);
@@ -447,7 +450,7 @@ WINDOW * ViewController::VisualCreation(){
 //Does the start of the game
 void ViewController::updateStart(int &numOfPlayer, int &numOfAi){
     
-    WINDOW * win = VisualCreation();
+    WINDOW * win = VisualCreation(2,2,4,4);
     bool dontEndStartGame = true;
     int Input = 0;
     highlight1= 0;
@@ -681,7 +684,7 @@ void ViewController::update(Player * p,int playerNum,shared_ptr<Map> m){
         level = p->buildings[i]->getLevel();
         gen = p->buildings[i]->getGen();
         if(amount != 0){
-            mvwprintw(reswin,j,1,"%s: Qty:%d Lvl:%d Gen:%d",str,amount,level,gen);
+            mvwprintw(reswin,j,1,"%s: Qty:%d Lvl:%d Gen:%d       ",str,amount,level,gen);
             j++;
         }
     }
@@ -703,7 +706,7 @@ void ViewController::update(Player * p,int playerNum,shared_ptr<Map> m){
         level = p->troops[i]->getLevel();
         powR = p->troops[i]->getPowerRating();
         if(amount != 0){
-            mvwprintw(reswin,j,1,"%s: Qty:%d Lvl:%d Power:%d",str,amount,level,powR);
+            mvwprintw(reswin,j,1,"%s: Qty:%d Lvl:%d Power:%d     ",str,amount,level,powR);
             j++;
         }
     }
@@ -1062,6 +1065,80 @@ void ViewController::refresh(){
     wrefresh(mapwin);
 }
 
+int ViewController::StartAttack(shared_ptr<Holder> Attack){
+    WINDOW * win = VisualCreation(2,2,4,4);
+    bool hasTheyNotSelectedSomething = true;
+    int input = 0;
+    highlight1= 0;
+
+    mvwprintw(win,0,1,"YOU-ARE-UNDER-ATTACK!:");
+    mvwprintw(win,3,1,"\t       <An attack force from Player:%d>",Attack->whoDidIt);
+    mvwprintw(win,4,1,"\t      <There are %d Units attacking you>",Attack->troops[0]->getAmount()+Attack->troops[1]->getAmount()+Attack->troops[2]->getAmount());
+
+    mvwprintw(win,6,1,"        > Select how you want to defend your base:");
+
+    
+    mvwprintw(win,9,1,"Gain Grid: DefendV\\Attack>   ");
+    mvwprintw(win,10,1,"You:               Fully     ");
+    mvwprintw(win,11,1,"                   Safely    ");
+    mvwprintw(win,12,1,"                   Gainfully ");
+
+    wattron(win,A_UNDERLINE);
+    mvwprintw(win,9,31, " Fully\t Safely\t  Gainfully");
+    mvwprintw(win,10,31,"|Even\t|Loss  \t |Win     |");
+    mvwprintw(win,11,31,"|Win\t|Even  \t |Loss    |");
+    mvwprintw(win,12,31,"|Loss\t|Win   \t |Even    |");
+    wattroff(win,A_UNDERLINE);
+
+    do{
+        mvwprintw(win,7,1,"    ");
+        if(highlight1 == 0){
+            wattron(win,A_REVERSE);
+        }
+        wprintw(win,"> Defend Fully");
+        wattroff(win,A_REVERSE);
+        
+        wprintw(win," ");
+        if(highlight1 == 1){
+            wattron(win,A_REVERSE);
+        }
+        wprintw(win,"> Defend Safely");
+        wattroff(win,A_REVERSE);
+        
+        wprintw(win," ");
+        if(highlight1 == 2){
+            wattron(win,A_REVERSE);
+        }
+        wprintw(win,"> Defend Gainfully");
+        wattroff(win,A_REVERSE);
+
+        input = wgetch(win);
+        
+        switch(input){
+            case KEY_LEFT:
+                highlight1--;
+                if(highlight1 == -1){
+                    highlight1 = 0;
+                }
+            break;
+            case KEY_RIGHT:
+                highlight1++;
+                if(highlight1 == 3){
+                    highlight1 = 2;
+                }
+            break;
+            case 10:
+                hasTheyNotSelectedSomething = false;
+            break;
+        }
+
+    }while(hasTheyNotSelectedSomething);
+
+    wclear(win);
+    wrefresh(win);
+    return highlight1;
+}
+
 
 //Returns the count
 int ViewController::getCount()
@@ -1125,4 +1202,12 @@ int ViewController::getPlayerCount(){
     return this->playerCount;
 }
 
+void ViewController::sendMsg(string str){
+    WINDOW * win = VisualCreation(2,2,4,4);
+    mvwprintw(win,1,1,str.c_str());
+    wgetch(win);
+
+    wclear(win);
+    wrefresh(win);
+}
 #endif // __VIEWCONTROLLER_H__

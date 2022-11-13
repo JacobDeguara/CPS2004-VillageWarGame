@@ -48,6 +48,10 @@ public:
             i->time--;
         }
     };
+
+    int Size(){
+        return MaxSize;
+    };
 };
 
 Attack::Attack()

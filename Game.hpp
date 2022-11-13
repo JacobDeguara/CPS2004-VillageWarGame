@@ -33,7 +33,6 @@ private:
     struct {
         int Max;
         int Current;
-        vector<int> removed;
     }PlayersNumbers;
 
     void StartGame();
@@ -41,7 +40,7 @@ private:
     int actionTaken(); // will take the selected action and run it
     void endRound();
 
-    int attackProtocal();
+    bool attackProtocal();
 
     void menuLoop(int &whichMenu);
 
@@ -56,10 +55,7 @@ public:
 };
 
 Game::Game(){
-
     ATKlist = Attack();
-    
-
 }
 
 //This should be done before the game
@@ -103,7 +99,10 @@ int Game::actionTaken(){
             //these will always return false ^^^ (= 0)
         case 3:     
             if(choice2 == 0){ //attack protocal (not done yet)
-                return 2;
+                if(attackProtocal()){
+                    return 1;
+                }
+                return 0;
             }
             if(choice2 == 1){ //end turn protocal
                 return 1;
@@ -124,20 +123,31 @@ void Game::endRound(){
 int Game::gameLoop(){
     int whichMenuNum = -1;
     bool dontExit = true, notSurrendered = true;
+    int attackLog = -1;
     
     StartGame();
-    
+    VC->sendMsg("You have taken 10 Damage!");
     do{
         //if true do game loop 
         if(notSurrendered == true){
             dontExit = true;
+
             //this is the menu loops
             VC->updateMap(M);
             VC->resetMenu();
-            do{
-                
+            ATKlist.NextTurn();
+            VC->update(&p[PlayersNumbers.Current],PlayersNumbers.Current,M);
+            VC->refresh();
+
+            attackLog = ATKlist.AmIBeingAttacked(p[PlayersNumbers.Current].getID());
+            if(attackLog != -1){
+                VC->StartAttack(ATKlist.getAttack(attackLog));
+            }
+
+            do{ 
+
                 whichMenuNum = VC->resetMenuPartial();
-                
+
                 menuLoop(whichMenuNum);
 
                 whichMenuNum = actionTaken();
@@ -150,7 +160,6 @@ int Game::gameLoop(){
                         PlayersNumbers.Current = 0;   
                     }
                     dontExit = false;
-                    VC->resetMenu();
                 }else if(whichMenuNum == -1){ // surrendered
                     dontExit = false;
                     PlayersNumbers.Max--;
@@ -161,11 +170,6 @@ int Game::gameLoop(){
                     if(PlayersNumbers.Current == PlayersNumbers.Max){
                         PlayersNumbers.Current = 0;   
                     }
-                }else if(whichMenuNum == 2){ //attack protocal
-                    
-                    
-                    VC->resetMenu();
-                    endRound();
                 }
 
             }while(dontExit);//end of menu loop
@@ -177,7 +181,7 @@ int Game::gameLoop(){
 }
 
 int Game::getNum(){
-    return 0;
+    return ATKlist.Size();
 }
 
 void Game::menuLoop(int &whichMenuNum){
@@ -213,9 +217,26 @@ void Game::menuLoop(int &whichMenuNum){
     }while(whichMenuNum < 0);
 };
 
-int Game::attackProtocal(){
+bool Game::attackProtocal(){
+    if(VC->getPlayerCount() == PlayersNumbers.Current){
+        return false;
+    }
+    if(p[PlayersNumbers.Current].troops[0]->getAmount() < VC->getArcherCount() || VC->getArcherCount() == 0){
+        return false;
+    }
+    if(p[PlayersNumbers.Current].troops[1]->getAmount() < VC->getKnightCount() || VC->getKnightCount() == 0){
+        return false;
+    }
+    if(p[PlayersNumbers.Current].troops[2]->getAmount() < VC->getDefenderCount() || VC->getDefenderCount() == 0){
+        return false;
+    }
+    
+    p[PlayersNumbers.Current].troops[0]->RemoveTroops(VC->getArcherCount());
+    p[PlayersNumbers.Current].troops[1]->RemoveTroops(VC->getKnightCount());
+    p[PlayersNumbers.Current].troops[2]->RemoveTroops(VC->getDefenderCount());
+
     ATKlist.createNewAttack(&p[PlayersNumbers.Current],M,VC->getPlayerCount(),PlayersNumbers.Current,VC->getArcherCount(),VC->getKnightCount(),VC->getDefenderCount(),VC->getAttackChoice());
-    return 0;
+    return true;
 };
 
 #endif
