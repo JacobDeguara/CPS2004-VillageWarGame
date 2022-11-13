@@ -2,21 +2,28 @@
 #include <ncurses.h>
 #include <vector>
 #include <string>
+#include <memory>
+
 #include "Player.hpp"
 #include "Map.hpp"
 #include "ViewController.hpp"
+#include "Attack.hpp"
 
 #ifndef _Game_H_
 #define _Game_H_
 using std::string;
 using std::vector;
+using std::shared_ptr;
+using std::make_shared;
+
 class Game
 {
 private:
 
     //Visual & Control
-    ViewController * VC;
-    Map * M;
+    shared_ptr<ViewController> VC = make_shared<ViewController>();
+    shared_ptr<Map> M;
+    Attack ATKlist;
     
     WINDOW * VisualCreation();
 
@@ -50,7 +57,8 @@ public:
 
 Game::Game(){
 
-    VC = new ViewController();
+    ATKlist = Attack();
+    
 
 }
 
@@ -67,13 +75,11 @@ void Game::StartGame(){
         p[i].setID(i);
     }
 
-    M = new Map(PlayersNumbers.Max);
+    M = make_shared<Map>(PlayersNumbers.Max);
 }
 
 Game::~Game(){
     p.clear();
-    
-    delete(VC);
 }
 
 /* > Runs the action selected through the VC interface
@@ -205,6 +211,11 @@ void Game::menuLoop(int &whichMenuNum){
         }
                     
     }while(whichMenuNum < 0);
-}
+};
+
+int Game::attackProtocal(){
+    ATKlist.createNewAttack(&p[PlayersNumbers.Current],M,VC->getPlayerCount(),PlayersNumbers.Current,VC->getArcherCount(),VC->getKnightCount(),VC->getDefenderCount(),VC->getAttackChoice());
+    return 0;
+};
 
 #endif

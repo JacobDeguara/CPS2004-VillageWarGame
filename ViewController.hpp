@@ -48,16 +48,21 @@ private:
 
 public:
     ViewController();
-    ~ViewController();
+    ~ViewController() = default;
 
     int getMenuMV(); 
     int getSubMenuMV(); 
-    int getInputMenuMV(Map * m); 
+    int getInputMenuMV(shared_ptr<Map> m); 
     void prepSubMenu();
-    void prepInputMenu(Map * m); 
+    void prepInputMenu(shared_ptr<Map> m); 
     void resetMenu(); 
     int resetMenuPartial(); 
 
+    void updateStart(int &numOfPlayer, int &numOfAi);
+    void update(Player * p,int playerNum,shared_ptr<Map> m);
+    void updateMap(shared_ptr<Map> m);
+    void refresh();
+    
     int getCount();
     int getWoodCost();
     int getStoneCost();
@@ -65,12 +70,11 @@ public:
     int getFoodCost();
     int getChoice1();
     int getChoice2();
-
-    void updateStart(int &numOfPlayer, int &numOfAi);
-    void update(Player * p,int playerNum,Map * m);
-    void updateMap(Map * m);
-    void refresh();
-    
+    int getArcherCount();
+    int getKnightCount();
+    int getDefenderCount();
+    int getAttackChoice();
+    int getPlayerCount();
     
 };
 
@@ -180,7 +184,7 @@ int ViewController::getSubMenuMV()
 }
 
 //Gets the input from inputWin and changes highlight3 accordingly
-int ViewController::getInputMenuMV(Map * m){
+int ViewController::getInputMenuMV(shared_ptr<Map> m){
     if(highlight1 != 3){ // if choice1 = 1-3 
         highlight4col = highlight4row =-1;
         int choice3 = wgetch(inwin);
@@ -339,7 +343,7 @@ void ViewController::prepSubMenu(){
 }
 
 //prepares the change from submenuWin to inputWin
-void ViewController::prepInputMenu(Map * m){
+void ViewController::prepInputMenu(shared_ptr<Map> m){
     count = 1;
     archerC =0;
     knightC = 0;
@@ -425,53 +429,6 @@ ViewController::ViewController()
     getmaxyx(stdscr,yMax,xMax);
     windowCreation(yMax,xMax);
     choicesCreation();
-}
-
-ViewController::~ViewController()
-{
-
-}
-
-//Returns the count
-int ViewController::getCount()
-{
-    return this->count;
-}
-
-//Returns the wood cost
-int ViewController::getWoodCost()
-{
-    return this->wood;
-}
-
-//Returns the stone cost
-int ViewController::getStoneCost()
-{
-    return this->stone;
-}
-
-//Returns the iron cost
-int ViewController::getIronCost()
-{
-    return this->iron;
-}
-
-//Returns the food cost
-int ViewController::getFoodCost()
-{
-    return this->food;
-}
-
-//Returns the Choice from the first menu
-int ViewController::getChoice1()
-{
-    return this->highlight1;
-}
-
-//returns the Choice from the second menu
-int ViewController::getChoice2()
-{
-    return this->highlight2;
 }
 
 WINDOW * ViewController::VisualCreation(){
@@ -631,7 +588,7 @@ void ViewController::updateStart(int &numOfPlayer, int &numOfAi){
 }
 
 //Re-Writes(updates) the View cash to change any changes
-void ViewController::update(Player * p,int playerNum,Map * m){
+void ViewController::update(Player * p,int playerNum,shared_ptr<Map> m){
     const char * str;
 
     //rest boxes incase of clears
@@ -1054,7 +1011,7 @@ void ViewController::update(Player * p,int playerNum,Map * m){
     
 }
 
-void ViewController::updateMap(Map * m){
+void ViewController::updateMap(shared_ptr<Map> m){
     for (size_t y = 0; y < 16; y++)
     {
         wmove(mapwin,1+y,1);
@@ -1103,6 +1060,69 @@ void ViewController::refresh(){
     wrefresh(submenuwin);
     wrefresh(inwin);
     wrefresh(mapwin);
+}
+
+
+//Returns the count
+int ViewController::getCount()
+{
+    return this->count;
+}
+
+//Returns the wood cost
+int ViewController::getWoodCost()
+{
+    return this->wood;
+}
+
+//Returns the stone cost
+int ViewController::getStoneCost()
+{
+    return this->stone;
+}
+
+//Returns the iron cost
+int ViewController::getIronCost()
+{
+    return this->iron;
+}
+
+//Returns the food cost
+int ViewController::getFoodCost()
+{
+    return this->food;
+}
+
+//Returns the Choice from the first menu
+int ViewController::getChoice1()
+{
+    return this->highlight1;
+}
+
+//returns the Choice from the second menu
+int ViewController::getChoice2()
+{
+    return this->highlight2;
+}
+
+int ViewController::getKnightCount(){
+    return this->knightC;
+}
+
+int ViewController::getArcherCount(){
+    return this->archerC;
+}
+
+int ViewController::getDefenderCount(){
+    return this->defenderC;
+}
+
+int ViewController::getAttackChoice(){
+    return this->highlight4row;
+}
+
+int ViewController::getPlayerCount(){
+    return this->playerCount;
 }
 
 #endif // __VIEWCONTROLLER_H__

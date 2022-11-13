@@ -24,7 +24,7 @@ private:
     pos make_pos(int x,int y);
 public:
     Map(int maxNumOfPlayers);
-    ~Map();
+    ~Map() = default;
 
     int getPosX(int i);
     int getPosY(int i);
@@ -88,10 +88,6 @@ Map::Map(int maxNumOfPlayers)
 
     //assign all player not dead
     IsDead.assign(Max,false);
-}
-
-Map::~Map()
-{
 }
 
 int Map::getPosX(int i){

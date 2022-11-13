@@ -12,6 +12,7 @@
 
 using std::vector;
 using std::shared_ptr;
+using std::make_shared;
 
 class Player
 {
@@ -40,19 +41,19 @@ public:
     int RoundEnd();
 
     vector<shared_ptr<Buildings>> buildings = {
-        std::make_shared<WoodCutter>(),
-        std::make_shared<StoneMiner>(),
-        std::make_shared<IronMiner>(),
-        std::make_shared<BattleTrainer>(),
-        std::make_shared<ArcheryRange>(),
-        std::make_shared<KnightingPalace>(),
-        std::make_shared<DefenderBarracks>(),
+        make_shared<WoodCutter>(),
+        make_shared<StoneMiner>(),
+        make_shared<IronMiner>(),
+        make_shared<BattleTrainer>(),
+        make_shared<ArcheryRange>(),
+        make_shared<KnightingPalace>(),
+        make_shared<DefenderBarracks>(),
     };
 
     vector<shared_ptr<Troops>> troops = {
-        std::make_shared<Archer>(4,6,6,5),
-        std::make_shared<Knight>(5,5,5,5),
-        std::make_shared<Defender>(7,3,3,7),
+        make_shared<Archer>(4,6,6,5),
+        make_shared<Knight>(5,5,5,5),
+        make_shared<Defender>(7,3,3,7),
     };
 
     bool upgradeBuilding(int amount,int buildingNum,int woodCost,int stoneCost, int ironCost,int foodCost);
