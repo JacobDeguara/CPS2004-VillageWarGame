@@ -37,8 +37,13 @@ public:
     int getIron();
     int getStone();
     int getFood();
+    void addOrRemoveWood(int amount, bool add);
+    void addOrRemoveIron(int amount, bool add);
+    void addOrRemoveStone(int amount, bool add);
+    void addOrRemoveFood(int amount, bool add);
     int getResSize();
     int RoundEnd();
+    int takeDamage(int hp);
 
     vector<shared_ptr<Buildings>> buildings = {
         make_shared<WoodCutter>(),
@@ -171,6 +176,46 @@ bool Player::upgradeTroops(int amount,int troopNum,int woodCost,int stoneCost, i
 
     troops[troopNum]->upgrade(amount);
     return false;
+}
+
+int Player::takeDamage(int hp){
+    health -= hp;
+    if(health < 1){
+        return -1;
+    }
+    return 0;
+}
+
+void Player::addOrRemoveWood(int amount, bool add){
+    if(add){
+        res.wood +=amount;
+    }else{
+        res.wood -=amount;
+    }
+}
+
+void Player::addOrRemoveIron(int amount, bool add){
+    if(add){
+        res.iron +=amount;
+    }else{
+        res.iron -=amount;
+    }
+}
+
+void Player::addOrRemoveStone(int amount, bool add){
+    if(add){
+        res.stone +=amount;
+    }else{
+        res.stone -=amount;
+    }
+}
+
+void Player::addOrRemoveFood(int amount, bool add){
+    if(add){
+        res.food +=amount;
+    }else{
+        res.food -=amount;
+    }
 }
 
 #endif

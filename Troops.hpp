@@ -11,6 +11,7 @@ public:
     int getAmount();
     int getLevel();
     int getDamage();
+    int getAcc();
 
     virtual void upgrade(int num);
     void add(int num);
@@ -78,6 +79,11 @@ int Troops::getLevel()
 int Troops::getDamage()
 {
     return damage;
+}
+
+int Troops::getAcc()
+{
+    return acc;
 }
 
 //returns (damage + health *amount)

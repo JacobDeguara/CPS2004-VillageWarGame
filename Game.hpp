@@ -3,6 +3,8 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include <cstdlib>
+#include <ctime>
 
 #include "Player.hpp"
 #include "Map.hpp"
@@ -24,8 +26,6 @@ private:
     shared_ptr<ViewController> VC = make_shared<ViewController>();
     shared_ptr<Map> M;
     Attack ATKlist;
-    
-    WINDOW * VisualCreation();
 
     //Players Resaources and Manipulation
     vector<Player> p;
@@ -36,11 +36,13 @@ private:
     }PlayersNumbers;
 
     void StartGame();
-    
+    int findPlayer(int ID);
+
     int actionTaken(); // will take the selected action and run it
     void endRound();
 
     bool attackProtocal();
+    int attackOnTitan();
 
     void menuLoop(int &whichMenu);
 
@@ -56,6 +58,15 @@ public:
 
 Game::Game(){
     ATKlist = Attack();
+}
+
+int Game::findPlayer(int ID){
+    for(int i=0; i < p.size(); i++){
+        if(p[i].getID() == ID){
+            return i;
+        }
+    }
+    return -1;
 }
 
 //This should be done before the game
@@ -123,10 +134,8 @@ void Game::endRound(){
 int Game::gameLoop(){
     int whichMenuNum = -1;
     bool dontExit = true, notSurrendered = true;
-    int attackLog = -1;
     
     StartGame();
-    VC->sendMsg("You have taken 10 Damage!");
     do{
         //if true do game loop 
         if(notSurrendered == true){
@@ -139,15 +148,13 @@ int Game::gameLoop(){
             VC->update(&p[PlayersNumbers.Current],PlayersNumbers.Current,M);
             VC->refresh();
 
-            attackLog = ATKlist.AmIBeingAttacked(p[PlayersNumbers.Current].getID());
-            if(attackLog != -1){
-                VC->StartAttack(ATKlist.getAttack(attackLog));
-            }
+            attackOnTitan();
 
             do{ 
 
                 whichMenuNum = VC->resetMenuPartial();
-
+                VC->update(&p[PlayersNumbers.Current],PlayersNumbers.Current,M);
+                VC->refresh();
                 menuLoop(whichMenuNum);
 
                 whichMenuNum = actionTaken();
@@ -221,13 +228,16 @@ bool Game::attackProtocal(){
     if(VC->getPlayerCount() == PlayersNumbers.Current){
         return false;
     }
-    if(p[PlayersNumbers.Current].troops[0]->getAmount() < VC->getArcherCount() || VC->getArcherCount() == 0){
+    if(p[PlayersNumbers.Current].troops[0]->getAmount() < VC->getArcherCount()){
         return false;
     }
-    if(p[PlayersNumbers.Current].troops[1]->getAmount() < VC->getKnightCount() || VC->getKnightCount() == 0){
+    if(p[PlayersNumbers.Current].troops[1]->getAmount() < VC->getKnightCount()){
         return false;
     }
-    if(p[PlayersNumbers.Current].troops[2]->getAmount() < VC->getDefenderCount() || VC->getDefenderCount() == 0){
+    if(p[PlayersNumbers.Current].troops[2]->getAmount() < VC->getDefenderCount()){
+        return false;
+    }
+    if(VC->getDefenderCount() == 0 && VC->getKnightCount() == 0 && VC->getArcherCount() == 0){
         return false;
     }
     
@@ -238,5 +248,232 @@ bool Game::attackProtocal(){
     ATKlist.createNewAttack(&p[PlayersNumbers.Current],M,VC->getPlayerCount(),PlayersNumbers.Current,VC->getArcherCount(),VC->getKnightCount(),VC->getDefenderCount(),VC->getAttackChoice());
     return true;
 };
+
+int Game::attackOnTitan(){
+    srand(time(0));
+    int attackLog = -1;
+    int choiceDefend;
+    int Damage = 0;
+    shared_ptr<Holder> Attacker;
+    do{
+        attackLog = ATKlist.AmIBeingAttacked(p[PlayersNumbers.Current].getID());
+        if(attackLog != -1){
+            choiceDefend = VC->StartAttack(ATKlist.getAttack(attackLog));
+            Attacker = ATKlist.getAttack(attackLog);
+            int choiceAttack = Attacker->attackChoice;
+
+            //No what we know we are being attacked and the player has gotten his defends style lets fo back to our handy chart
+            /*           Fully  Safely  Gainfully
+             *          |Even  |Loss   |Win     |
+             *          |Win   |Even   |Loss    |
+             *          |Loss  |Win    |Even    |
+             * so How are we goin to calulate the losses well mainly we need to check our players troops & pin them against the troops afters us
+             * then calculate the Appropriate losses and on random scale + the styles
+             * 
+             * On defence
+             * 
+             * Fully means 
+             * Disadvantage on ally surviving
+             * Disadvantage on resorce saftly 
+             * advantage on damage Dealt
+             * 
+             * Safly means
+             * Disadvantage on resorce safty 
+             * Disadvantage on damage dealt
+             * Advantage on ally survival
+             * 
+             * Gainfully means
+             * Disadvantage on ally survival
+             * Disadvantage on damage dealt
+             * advantage on resource safty 
+             * 
+             * On attack is the same but without the resource safty and instead just advatgae on resource gain in the Gainfully thing 
+             */
+            int AtkUnitHealth = Attacker->troops[0]->getHealth()*Attacker->troops[0]->getAmount() + Attacker->troops[1]->getHealth()*Attacker->troops[1]->getAmount() + Attacker->troops[2]->getHealth()*Attacker->troops[2]->getAmount();
+            int AtkUnitDamage = Attacker->troops[0]->getDamage()*Attacker->troops[0]->getAmount() + Attacker->troops[1]->getDamage()*Attacker->troops[1]->getAmount() + Attacker->troops[2]->getDamage()*Attacker->troops[2]->getAmount();
+            int AtkUnitAcc = (Attacker->troops[0]->getAcc()+Attacker->troops[1]->getAcc()+Attacker->troops[2]->getAcc())/3;
+            int AtkUnitHealthRatio = (Attacker->troops[0]->getHealth()+Attacker->troops[1]->getHealth()+Attacker->troops[2]->getHealth())/3;
+
+            int DefUnitHealth = p[PlayersNumbers.Current].troops[0]->getHealth()*p[PlayersNumbers.Current].troops[0]->getAmount() + p[PlayersNumbers.Current].troops[1]->getHealth()*p[PlayersNumbers.Current].troops[1]->getAmount() + p[PlayersNumbers.Current].troops[2]->getHealth()*p[PlayersNumbers.Current].troops[2]->getAmount();
+            int DefUnitDamage = p[PlayersNumbers.Current].troops[0]->getDamage()*p[PlayersNumbers.Current].troops[0]->getAmount() + p[PlayersNumbers.Current].troops[1]->getDamage()*p[PlayersNumbers.Current].troops[1]->getAmount() + p[PlayersNumbers.Current].troops[2]->getDamage()*p[PlayersNumbers.Current].troops[2]->getAmount();
+            int DefUnitAcc = (p[PlayersNumbers.Current].troops[0]->getAcc()+p[PlayersNumbers.Current].troops[1]->getAcc()+p[PlayersNumbers.Current].troops[2]->getAcc())/3;
+            int DefUnitHealthRatio =(p[PlayersNumbers.Current].troops[0]->getHealth()+p[PlayersNumbers.Current].troops[1]->getHealth()+p[PlayersNumbers.Current].troops[2]->getHealth())/3;
+
+            double AtkBonusSurvivalRate = 0; //the greater the number the Better for Attacker
+            double AtkBonusLootRate = 0;
+            double AtkBonusDamageRate = 0;
+            double DefBonusSurvivalRate = 0;
+            double DefBonusDamageRate = 0;
+
+
+            switch(choiceDefend){
+                case 0:
+                    if(choiceAttack == 0){ // 
+                        AtkBonusSurvivalRate = 0;
+                        AtkBonusLootRate = 0;
+                        AtkBonusDamageRate = 0;
+                        DefBonusSurvivalRate = 5/10;
+                        DefBonusDamageRate = 2/10;                                   
+                    }else if(choiceAttack == 1){ // loss
+                        AtkBonusSurvivalRate = 3/10;
+                        AtkBonusLootRate = 2/10;
+                        AtkBonusDamageRate = 4/10;
+                        DefBonusSurvivalRate = 0;
+                        DefBonusDamageRate = 0; 
+                    }else if(choiceAttack == 2){ // win
+                        AtkBonusSurvivalRate = 2/10;
+                        AtkBonusLootRate = 5/10;
+                        AtkBonusDamageRate = 0;
+                        DefBonusSurvivalRate = 5/10;
+                        DefBonusDamageRate = 2/10; 
+                    }
+                break;
+                case 1:
+                    if(choiceAttack == 0){
+                        AtkBonusSurvivalRate = 0;
+                        AtkBonusLootRate = 0;
+                        AtkBonusDamageRate = 0;
+                        DefBonusSurvivalRate = 4/10;
+                        DefBonusDamageRate = 3/10; 
+                    }else if(choiceAttack == 1){
+                        AtkBonusSurvivalRate = 0;
+                        AtkBonusLootRate = 0;
+                        AtkBonusDamageRate = 0;
+                        DefBonusSurvivalRate = 5/10;
+                        DefBonusDamageRate = 2/10; 
+                    }else if(choiceAttack == 2){
+                        AtkBonusSurvivalRate = 3/10;
+                        AtkBonusLootRate = 5/10;
+                        AtkBonusDamageRate = 0;
+                        DefBonusSurvivalRate = 3/10;
+                        DefBonusDamageRate = 0; 
+                    }
+                break;
+                case 2:
+                    if(choiceAttack == 0){
+                        AtkBonusSurvivalRate = 2/10;
+                        AtkBonusLootRate = 1/10;
+                        AtkBonusDamageRate = 3/10;
+                        DefBonusSurvivalRate = 2/10;
+                        DefBonusDamageRate = 0; 
+                    }else if(choiceAttack == 1){
+                        AtkBonusSurvivalRate = 2/10;
+                        AtkBonusLootRate = 1/10;
+                        AtkBonusDamageRate = 2/10;
+                        DefBonusSurvivalRate = 2/10;
+                        DefBonusDamageRate = 2/10; 
+                    }else if(choiceAttack == 2){
+                        AtkBonusSurvivalRate = 0;
+                        AtkBonusLootRate = 1/10;
+                        AtkBonusDamageRate = 0;
+                        DefBonusSurvivalRate = 5/10;
+                        DefBonusDamageRate = 2/10; 
+                    }
+                break;
+            }
+
+            double AtkTrueDamage = AtkUnitDamage*AtkUnitAcc + (rand()%(int)((AtkUnitDamage*AtkBonusDamageRate)+1));
+            double DefTrueDamage = DefUnitDamage*DefUnitAcc + (rand()%(int)((DefUnitDamage*DefBonusDamageRate)+1));
+            
+            double AtkDifferenceOfDamage = AtkTrueDamage/(AtkTrueDamage+DefTrueDamage+1);// the one is there just incase /0 occurs (it shouldnt but just incase)
+            double DefDifferenceOfDamage = 1 - AtkDifferenceOfDamage;
+
+            double AtkCalculatedHealth = AtkUnitHealth - (AtkUnitHealth*DefDifferenceOfDamage)*(1-AtkBonusSurvivalRate);
+            double DefCalculatedHealth = DefUnitHealth - (DefUnitHealth*AtkDifferenceOfDamage)*(1-DefBonusSurvivalRate);
+
+            double AtkUnitsLeft = AtkCalculatedHealth/AtkUnitHealthRatio;
+            double DefUnitsLeft = DefCalculatedHealth/DefUnitHealthRatio;
+
+            AtkUnitsLeft = round(AtkUnitsLeft);
+            DefUnitsLeft = round(DefUnitsLeft);
+
+            int AtkUnitCarry =(Attacker->troops[0]->getCarryingCapacity() + Attacker->troops[1]->getCarryingCapacity() + Attacker->troops[2]->getCarryingCapacity())/3;
+            double AtkLoot = (AtkUnitsLeft*AtkUnitCarry) + (AtkUnitsLeft*AtkUnitCarry)*(AtkBonusLootRate);
+
+            AtkLoot = round(AtkLoot);
+            
+            int alive = p[PlayersNumbers.Current].takeDamage((int)AtkUnitsLeft);
+            
+            vector<string> s;
+            s.push_back("You Have Taken ");
+            s[0] += std::to_string(AtkUnitsLeft);
+            s[0] += " Damage ";
+            if(alive == -1){
+                s[0] += "and you are dead!";
+            }
+            s.push_back("Additonally you have lost ");
+            s[1] += std::to_string(AtkLoot);
+            s[1] += " material";
+        
+            VC->sendMsg(s);
+        
+            //give back the units
+            int playerPos1 = findPlayer(Attacker->whoDidIt);
+            while(AtkUnitsLeft > 0){
+                if(AtkUnitsLeft > 0){
+                    p[playerPos1].troops[0]->add(1);
+                    AtkUnitsLeft--;
+                }
+                if(AtkUnitsLeft > 0){
+                    p[playerPos1].troops[1]->add(1);
+                    AtkUnitsLeft--;
+                }
+                if(AtkUnitsLeft > 0){
+                    p[playerPos1].troops[2]->add(1);
+                    AtkUnitsLeft--;
+                }
+            }
+        
+            int playerPos2 = findPlayer(Attacker->toWhom);
+            while(DefUnitsLeft > 0 ){
+                if(DefUnitsLeft > 0 && Attacker->troops[0]->getAmount() !=0){
+                    p[playerPos2].troops[0]->add(1);
+                    Attacker->troops[0]->RemoveTroops(1);
+                    DefUnitsLeft--;
+                }
+                if(DefUnitsLeft > 0 && Attacker->troops[1]->getAmount() !=0){
+                    p[playerPos2].troops[1]->add(1);
+                    Attacker->troops[1]->RemoveTroops(1);
+                    DefUnitsLeft--;
+                }
+                if(DefUnitsLeft > 0 && Attacker->troops[2]->getAmount() !=0){
+                    p[playerPos2].troops[2]->add(1);
+                    Attacker->troops[2]->RemoveTroops(1);
+                    DefUnitsLeft--;
+                }
+            }
+        
+            while(AtkLoot > 0){
+                if(AtkLoot > 0 && (p[playerPos2].getWood() > 0)){
+                    p[playerPos1].addOrRemoveWood(1,true);
+                    p[playerPos2].addOrRemoveWood(1,false);
+                    AtkLoot--;
+                }
+                if(AtkLoot > 0 && (p[playerPos2].getStone() > 0)){
+                    p[playerPos1].addOrRemoveStone(1,true);
+                    p[playerPos2].addOrRemoveStone(1,false);
+                    AtkLoot--;
+                }
+                if(AtkLoot > 0 && (p[playerPos2].getIron() > 0)){
+                    p[playerPos1].addOrRemoveIron(1,true);
+                    p[playerPos2].addOrRemoveIron(1,false);
+                    AtkLoot--;
+                }
+                if(AtkLoot > 0 && (p[playerPos2].getFood() > 0)){
+                    p[playerPos1].addOrRemoveFood(1,true);
+                    p[playerPos2].addOrRemoveFood(1,false);
+                    AtkLoot--;
+                }
+                if(p[playerPos2].getFood() == 0 &&  p[playerPos2].getIron() == 0 && p[playerPos2].getStone() == 0 && p[playerPos2].getWood() == 0){
+                    break;
+                }
+            }
+            
+            attackLog = ATKlist.removeAttack(attackLog);
+        }
+
+    }while(attackLog != -1);
+    return 0;
+}
 
 #endif

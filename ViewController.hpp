@@ -78,7 +78,7 @@ public:
     int getAttackChoice();
     int getPlayerCount();
     
-    void sendMsg(string str);
+    void sendMsg(vector<string> str);
 };
 
 void ViewController::windowCreation(int yMax,int xMax){
@@ -862,11 +862,12 @@ void ViewController::update(Player * p,int playerNum,shared_ptr<Map> m){
     }
 
     if(highlight1 == 3 && highlight2 == 0){
+        mvwprintw(inwin,1,1,"<Send an amry to attack an enemy>");
         int num = 0;
         size_t i = 0;
 
         str = "Location: \t";
-        mvwprintw(inwin,1+i,1,"%s",str);
+        mvwprintw(inwin,2+i,1,"%s",str);
 
         if(highlight4col == i && highlight4row == 0){
             wattron(inwin,A_REVERSE);
@@ -919,7 +920,7 @@ void ViewController::update(Player * p,int playerNum,shared_ptr<Map> m){
                 break;
             }
 
-            mvwprintw(inwin,1+i,1,"%s",str);
+            mvwprintw(inwin,2+i,1,"%s",str);
 
             if(highlight4col == i && highlight4row == 0){
                 wattron(inwin,A_REVERSE);
@@ -953,12 +954,12 @@ void ViewController::update(Player * p,int playerNum,shared_ptr<Map> m){
             wattroff(inwin,A_REVERSE);
         }
 
-        mvwprintw(inwin,5,1,"After selecting your troops, Select your objective:");
+        mvwprintw(inwin,6,1,"After selecting your troops, Select your objective:");
 
         if(highlight4col == 4 && highlight4row == 0){
             wattron(inwin,A_REVERSE);
         }
-        mvwprintw(inwin,6,1,"Attack Fully");
+        mvwprintw(inwin,7,1,"Attack Fully");
         wattroff(inwin,A_REVERSE);
 
         wprintw(inwin,"  ");
@@ -975,10 +976,24 @@ void ViewController::update(Player * p,int playerNum,shared_ptr<Map> m){
         wprintw(inwin,"Attack Gainfully");
         wattroff(inwin,A_REVERSE);
         
+    }else if(highlight1 == 3 && highlight2 == 1){
+        mvwprintw(inwin,1,1,"<Once your done End your turn>       ");
+        mvwprintw(inwin,4,1,"\t\t\t\t\t\t");
+        mvwprintw(inwin,5,1,"\t\t\t\t\t\t\t");
+        mvwprintw(inwin,6,1,"\t\t\t\t\t\t\t");
+        mvwprintw(inwin,7,1,"\t\t\t\t\t\t\t");
+
+    }else if(highlight1 == 3 && highlight2 == 2){
+        mvwprintw(inwin,1,1,"<Kill yourself before they kill you>");
+        mvwprintw(inwin,4,1,"\t\t\t\t\t\t");
+        mvwprintw(inwin,5,1,"\t\t\t\t\t\t\t");
+        mvwprintw(inwin,6,1,"\t\t\t\t\t\t\t");
+        mvwprintw(inwin,7,1,"\t\t\t\t\t\t\t");
     }else{
         mvwprintw(inwin,4,1,"\t\t\t\t\t\t");
         mvwprintw(inwin,5,1,"\t\t\t\t\t\t\t");
         mvwprintw(inwin,6,1,"\t\t\t\t\t\t\t");
+        mvwprintw(inwin,7,1,"\t\t\t\t\t\t\t");
     }
 
     //Map Window
@@ -1141,44 +1156,37 @@ int ViewController::StartAttack(shared_ptr<Holder> Attack){
 
 
 //Returns the count
-int ViewController::getCount()
-{
+int ViewController::getCount(){
     return this->count;
 }
 
 //Returns the wood cost
-int ViewController::getWoodCost()
-{
+int ViewController::getWoodCost(){
     return this->wood;
 }
 
 //Returns the stone cost
-int ViewController::getStoneCost()
-{
+int ViewController::getStoneCost(){
     return this->stone;
 }
 
 //Returns the iron cost
-int ViewController::getIronCost()
-{
+int ViewController::getIronCost(){
     return this->iron;
 }
 
 //Returns the food cost
-int ViewController::getFoodCost()
-{
+int ViewController::getFoodCost(){
     return this->food;
 }
 
 //Returns the Choice from the first menu
-int ViewController::getChoice1()
-{
+int ViewController::getChoice1(){
     return this->highlight1;
 }
 
 //returns the Choice from the second menu
-int ViewController::getChoice2()
-{
+int ViewController::getChoice2(){
     return this->highlight2;
 }
 
@@ -1202,9 +1210,12 @@ int ViewController::getPlayerCount(){
     return this->playerCount;
 }
 
-void ViewController::sendMsg(string str){
+void ViewController::sendMsg(vector<string> str){
     WINDOW * win = VisualCreation(2,2,4,4);
-    mvwprintw(win,1,1,str.c_str());
+    for (size_t i = 0; i < str.size(); i++)
+    {   
+        mvwprintw(win,1+i,1,str[i].c_str());
+    }
     wgetch(win);
 
     wclear(win);

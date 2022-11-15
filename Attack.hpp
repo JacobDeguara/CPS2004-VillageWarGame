@@ -36,6 +36,7 @@ public:
     ~Attack() = default;
 
     void createNewAttack(Player * p,shared_ptr<Map> m,int toWhom,int whoDidIt,int archerC,int knightC,int DefenderC,int attackChoice);
+    int removeAttack(int meID);
     int AmIBeingAttacked(int meID);
     
     shared_ptr<Holder> getAttack(int Num){
@@ -94,6 +95,15 @@ void Attack::createNewAttack(Player * p,shared_ptr<Map> m,int toWhom,int whoDidI
         time = 1;
     }
 
+}
+
+int Attack::removeAttack(int meID){
+    if(meID > MaxSize || meID == -1){
+        return -1;
+    }
+    MaxSize--;
+    listOfAttacks.erase(listOfAttacks.begin()+meID);
+    return 0;
 }
 
 // returns the list number if true else returns -1
