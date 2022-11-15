@@ -2,10 +2,12 @@
 #include <vector>
 #include <string>
 #include <array>
+#include <cmath>
 
 #include "Attack.hpp"
 #include "Player.hpp"
 #include "Map.hpp"
+#include "Attack.hpp"
 
 #ifndef __VIEWCONTROLLER_H__
 #define __VIEWCONTROLLER_H__
@@ -44,8 +46,8 @@ private:
     WINDOW * VisualCreation(int x1,int y1,int x2,int y2);
     void windowCreation(int yMax, int xMax);
     void choicesCreation();
-    void costCreationTroop(int food,Player * p); 
-    void costCreationBuildings(int wood,int stone,int iron,int food,Player * p);
+    void costCreationTroop(int food,Player * currentPlayer); 
+    void costCreationBuildings(int wood,int stone,int iron,int food,Player * currentPlayer);
 
 public:
     ViewController();
@@ -53,15 +55,15 @@ public:
 
     int getMenuMV(); 
     int getSubMenuMV(); 
-    int getInputMenuMV(shared_ptr<Map> m); 
+    int getInputMenuMV(shared_ptr<Map> map); 
     void prepSubMenu();
-    void prepInputMenu(shared_ptr<Map> m); 
+    void prepInputMenu(shared_ptr<Map> map); 
     void resetMenu(); 
     int resetMenuPartial(); 
 
     void updateStart(int &numOfPlayer, int &numOfAi);
-    void update(Player * p,int playerNum,shared_ptr<Map> m);
-    void updateMap(shared_ptr<Map> m);
+    void update(Player * currentPlayer,int playerNum,shared_ptr<Map> map,Attack AtkList);
+    void updateMap(shared_ptr<Map> map);
     void refresh();
     int StartAttack(shared_ptr<Holder> Attack);
     
@@ -187,7 +189,7 @@ int ViewController::getSubMenuMV()
 }
 
 //Gets the input from inputWin and changes highlight3 accordingly
-int ViewController::getInputMenuMV(shared_ptr<Map> m){
+int ViewController::getInputMenuMV(shared_ptr<Map> map){
     if(highlight1 != 3){ // if choice1 = 1-3 
         highlight4col = highlight4row =-1;
         int choice3 = wgetch(inwin);
@@ -274,12 +276,12 @@ int ViewController::getInputMenuMV(shared_ptr<Map> m){
                         
                         playerCount--;
                         if(playerCount == -1){
-                            playerCount = m->getMax()-1;
+                            playerCount = map->getMax()-1;
                         } 
-                        while(m->IsPlayerDead(playerCount)){ //check if current player is dead
+                        while(map->IsPlayerDead(playerCount)){ //check if current player is dead
                             playerCount--; // reduce by once since thats what it does
                             if(playerCount == -1){ // checks if we whent beyond the 0-Max
-                                playerCount = m->getMax()-1; // reverts to Max
+                                playerCount = map->getMax()-1; // reverts to Max
                             }
                         }                   
 
@@ -305,14 +307,14 @@ int ViewController::getInputMenuMV(shared_ptr<Map> m){
                     case 0:
                         
                         playerCount++;
-                        if (playerCount >= m->getMax())
+                        if (playerCount >= map->getMax())
                         {
                             playerCount = 0;
                         }
-                        while (m->IsPlayerDead(playerCount))
+                        while (map->IsPlayerDead(playerCount))
                         {
                             playerCount++; // add by once since thats what it does
-                            if(playerCount >= m->getMax()){ // checks if we whent beyond the 0-Max
+                            if(playerCount >= map->getMax()){ // checks if we whent beyond the 0-Max
                                 playerCount = 0; // reverts to 0
                             }
                         }
@@ -346,7 +348,7 @@ void ViewController::prepSubMenu(){
 }
 
 //prepares the change from submenuWin to inputWin
-void ViewController::prepInputMenu(shared_ptr<Map> m){
+void ViewController::prepInputMenu(shared_ptr<Map> map){
     count = 1;
     archerC =0;
     knightC = 0;
@@ -356,7 +358,7 @@ void ViewController::prepInputMenu(shared_ptr<Map> m){
     highlight4row = 0;
 
     playerCount = 0;
-    while(m->IsPlayerDead(playerCount)){
+    while(map->IsPlayerDead(playerCount)){
         playerCount++;
     }
 }
@@ -411,18 +413,18 @@ void ViewController::choicesCreation()
     MenuNames[3].submenuSize = size2;
 }
 
-void ViewController::costCreationTroop(int food,Player * p){
+void ViewController::costCreationTroop(int food,Player * currentPlayer){
     this->wood = 0;
     this->stone= 0;
     this->iron = 0;
-    this->food = food * count + 1*(p->troops[highlight2]->getLevel());
+    this->food = food * count + 1*(currentPlayer->troops[highlight2]->getLevel());
 }
 
-void ViewController::costCreationBuildings(int wood,int stone,int iron,int food,Player * p){
-    this->wood = wood *(count *(p->buildings[highlight2]->getamount()+p->buildings[highlight2]->getLevel()));
-    this->stone= stone *(count *(p->buildings[highlight2]->getamount()+p->buildings[highlight2]->getLevel()));
-    this->iron = iron  *(count *(p->buildings[highlight2]->getamount()+p->buildings[highlight2]->getLevel()));
-    this->food = food  *(count *(p->buildings[highlight2]->getamount()+p->buildings[highlight2]->getLevel()));
+void ViewController::costCreationBuildings(int wood,int stone,int iron,int food,Player * currentPlayer){
+    this->wood = wood *(count *(currentPlayer->buildings[highlight2]->getamount()+currentPlayer->buildings[highlight2]->getLevel()));
+    this->stone= stone *(count *(currentPlayer->buildings[highlight2]->getamount()+currentPlayer->buildings[highlight2]->getLevel()));
+    this->iron = iron  *(count *(currentPlayer->buildings[highlight2]->getamount()+currentPlayer->buildings[highlight2]->getLevel()));
+    this->food = food  *(count *(currentPlayer->buildings[highlight2]->getamount()+currentPlayer->buildings[highlight2]->getLevel()));
 }
 
 //Connects all the windows and preps the Menu
@@ -591,7 +593,7 @@ void ViewController::updateStart(int &numOfPlayer, int &numOfAi){
 }
 
 //Re-Writes(updates) the View cash to change any changes
-void ViewController::update(Player * p,int playerNum,shared_ptr<Map> m){
+void ViewController::update(Player * currentPlayer,int playerNum,shared_ptr<Map> map,Attack AtkList){
     const char * str;
 
     //rest boxes incase of clears
@@ -643,25 +645,25 @@ void ViewController::update(Player * p,int playerNum,shared_ptr<Map> m){
     int j=1,jHold;
 
     //print basic Resources (wood,stone,iron,food)
-    for(int i = 0; i < p->getResSize(); i++)
+    for(int i = 0; i < currentPlayer->getResSize(); i++)
     {   
         int num;
         switch(i){
             case 0:
                 str = "Wood : ";
-                num = p->getWood();
+                num = currentPlayer->getWood();
                 break;
             case 1:
                 str = "Stone: ";
-                num = p->getStone();
+                num = currentPlayer->getStone();
                 break;
             case 2:
                 str = "Iron : ";
-                num = p->getIron();
+                num = currentPlayer->getIron();
                 break;
             case 3:
                 str = "Food : ";
-                num = p->getFood();
+                num = currentPlayer->getFood();
                 break;
             case 4:
                 break;
@@ -680,9 +682,9 @@ void ViewController::update(Player * p,int playerNum,shared_ptr<Map> m){
         
         int amount,level,gen;
         str = MenuNames[0].submenuNames[i].data();
-        amount = p->buildings[i]->getamount();
-        level = p->buildings[i]->getLevel();
-        gen = p->buildings[i]->getGen();
+        amount = currentPlayer->buildings[i]->getamount();
+        level = currentPlayer->buildings[i]->getLevel();
+        gen = currentPlayer->buildings[i]->getGen();
         if(amount != 0){
             mvwprintw(reswin,j,1,"%s: Qty:%d Lvl:%d Gen:%d       ",str,amount,level,gen);
             j++;
@@ -702,9 +704,9 @@ void ViewController::update(Player * p,int playerNum,shared_ptr<Map> m){
         int temp;
         int amount,level,powR;
         str = MenuNames[2].submenuNames[i].data();
-        amount = p->troops[i]->getAmount();
-        level = p->troops[i]->getLevel();
-        powR = p->troops[i]->getPowerRating();
+        amount = currentPlayer->troops[i]->getAmount();
+        level = currentPlayer->troops[i]->getLevel();
+        powR = currentPlayer->troops[i]->getPowerRating();
         if(amount != 0){
             mvwprintw(reswin,j,1,"%s: Qty:%d Lvl:%d Power:%d     ",str,amount,level,powR);
             j++;
@@ -728,19 +730,19 @@ void ViewController::update(Player * p,int playerNum,shared_ptr<Map> m){
         case 0:
             switch (highlight1){
             case 0:
-                costCreationBuildings(2,2,0,0,p);                                                                                 //create wood cutter
+                costCreationBuildings(2,2,0,0,currentPlayer);                                                                                 //create wood cutter
                 mvwprintw(inwin,1,1,"<Create more Wood Cutters> ");
             break;
             case 1:
-                costCreationBuildings(2,2,2,1,p);
+                costCreationBuildings(2,2,2,1,currentPlayer);
                 mvwprintw(inwin,1,1,"<Upgrading the Wood Cutter>");
             break;
             case 2:
-                costCreationTroop(1,p);
+                costCreationTroop(1,currentPlayer);
                 mvwprintw(inwin,1,1,"<Train the Archers>        ");
             break;
             default:
-                costCreationBuildings(0,0,0,0,p);
+                costCreationBuildings(0,0,0,0,currentPlayer);
                 break;
             }
             mvwprintw(inwin,2,1,"Wood: %d , Stone: %d , Iron: %d , Food %d         ",wood,stone,iron,food);
@@ -749,19 +751,19 @@ void ViewController::update(Player * p,int playerNum,shared_ptr<Map> m){
         case 1:
             switch (highlight1){
             case 0:
-                costCreationBuildings(2,0,2,0,p);
+                costCreationBuildings(2,0,2,0,currentPlayer);
                 mvwprintw(inwin,1,1,"<Create more Stone Miners> ");
             break;
             case 1:
-                costCreationBuildings(3,0,3,1,p);
+                costCreationBuildings(3,0,3,1,currentPlayer);
                 mvwprintw(inwin,1,1,"<Upgrades the Stone Miner> ");
             break;
             case 2:
-                costCreationTroop(1,p);
+                costCreationTroop(1,currentPlayer);
                 mvwprintw(inwin,1,1,"<Train the Knights>        ");
             break;
             default:
-                costCreationBuildings(0,0,0,0,p);
+                costCreationBuildings(0,0,0,0,currentPlayer);
                 break;
             }
             mvwprintw(inwin,2,1,"Wood: %d , Stone: %d , Iron: %d , Food %d         ",wood,stone,iron,food);
@@ -770,29 +772,29 @@ void ViewController::update(Player * p,int playerNum,shared_ptr<Map> m){
         case 2:
             switch (highlight1){
             case 0:
-                costCreationBuildings(3,2,0,0,p);                                                                                 //create iron miner
+                costCreationBuildings(3,2,0,0,currentPlayer);                                                                                 //create iron miner
                 mvwprintw(inwin,1,1,"<Create more Iron Miners>  ");
             break;
             case 1:
-                costCreationBuildings(3,3,0,1,p);
+                costCreationBuildings(3,3,0,1,currentPlayer);
                 mvwprintw(inwin,1,1,"<Upgrades the Iron Miner>  ");
             break;
             case 2:
-                costCreationTroop(1,p);
+                costCreationTroop(1,currentPlayer);
                 mvwprintw(inwin,1,1,"<Train the Defenders>     ");
             break;
             default:
-                costCreationBuildings(0,0,0,0,p);
+                costCreationBuildings(0,0,0,0,currentPlayer);
                 break;
             }
             mvwprintw(inwin,2,1,"Wood: %d , Stone: %d , Iron: %d , Food %d         ",wood,stone,iron,food);
         break;
         case 3:
             if(highlight1==0){                                                                                   //create Battle Trainer
-                costCreationBuildings(2,2,2,0,p);
+                costCreationBuildings(2,2,2,0,currentPlayer);
                 mvwprintw(inwin,1,1,"<Create more Food stalls>  ");
             }else if(highlight1==1){                                                                             // Upgrade Battle Trainer
-                costCreationBuildings(2,2,2,0,p);
+                costCreationBuildings(2,2,2,0,currentPlayer);
                 mvwprintw(inwin,1,1,"<Upgrades the Battle Tower>");
             }
             mvwprintw(inwin,2,1,"Wood: %d , Stone: %d , Iron: %d , Food %d         ",wood,stone,iron,food);
@@ -800,10 +802,10 @@ void ViewController::update(Player * p,int playerNum,shared_ptr<Map> m){
 
         case 4:
             if(highlight1==0){                                                                                   //create Archer place
-                costCreationBuildings(2,2,0,2,p);
+                costCreationBuildings(2,2,0,2,currentPlayer);
                 mvwprintw(inwin,1,1,"<Creates more Archers>     "); 
             }else if(highlight1==1){  
-                costCreationBuildings(2,0,2,1,p);                                                                           // Upgrade Archer place
+                costCreationBuildings(2,0,2,1,currentPlayer);                                                                           // Upgrade Archer place
                 mvwprintw(inwin,1,1,"<Upgrade The Range>        ");
             }
             mvwprintw(inwin,2,1,"Wood: %d , Stone: %d , Iron: %d , Food %d         ",wood,stone,iron,food);
@@ -811,10 +813,10 @@ void ViewController::update(Player * p,int playerNum,shared_ptr<Map> m){
 
         case 5:
             if(highlight1==0){  
-                costCreationBuildings(1,1,1,2,p);                                                                                 //create Knight place
+                costCreationBuildings(1,1,1,2,currentPlayer);                                                                                 //create Knight place
                 mvwprintw(inwin,1,1,"<Creates more Knights>     ");
             }else if(highlight1==1){                                                                             // Upgrade Knight place
-                costCreationBuildings(1,1,1,1,p);
+                costCreationBuildings(1,1,1,1,currentPlayer);
                 mvwprintw(inwin,1,1,"<Upgrades The Palace>      ");
             }
             mvwprintw(inwin,2,1,"Wood: %d , Stone: %d , Iron: %d , Food %d         ",wood,stone,iron,food);
@@ -822,10 +824,10 @@ void ViewController::update(Player * p,int playerNum,shared_ptr<Map> m){
 
         case 6:
             if(highlight1==0){   
-                costCreationBuildings(1,1,1,3,p);                                                                                //create Defender place
+                costCreationBuildings(1,1,1,3,currentPlayer);                                                                                //create Defender place
                 mvwprintw(inwin,1,1,"<Creates more Defenders>   ");
             }else if(highlight1==1){                                                                             // Upgrade Defender place
-                costCreationBuildings(1,2,1,1,p);
+                costCreationBuildings(1,2,1,1,currentPlayer);
                 mvwprintw(inwin,1,1,"<Upgrades the Barackes>    ");
             }
             mvwprintw(inwin,2,1,"Wood: %d , Stone: %d , Iron: %d , Food %d         ",wood,stone,iron,food);
@@ -880,8 +882,8 @@ void ViewController::update(Player * p,int playerNum,shared_ptr<Map> m){
             wattron(inwin,A_REVERSE);
         }
         
-        int x = m->getPosX(playerCount);
-        int y = m->getPosY(playerCount);
+        int x = map->getPosX(playerCount);
+        int y = map->getPosY(playerCount);
 
         if(playerNum != -1){
             wprintw(inwin,"x:%d y:%d ID:%d",x,y,playerCount);
@@ -997,15 +999,15 @@ void ViewController::update(Player * p,int playerNum,shared_ptr<Map> m){
     }
 
     //Map Window
-    mvwprintw(mapwin,0,1,"Map-Player:-%d",p->getID());
+    mvwprintw(mapwin,0,1,"Map-Player:-%d",currentPlayer->getID());
 
     int x,y;
-    x = m->getPosX(p->getID());
-    y = m->getPosY(p->getID());
+    x = map->getPosX(currentPlayer->getID());
+    y = map->getPosY(currentPlayer->getID());
 
     wprintw(mapwin,"-x=%d-y=%d",x,y);
 
-    updateMap(m);
+    updateMap(map);
         
     //bug here dont know why 
     //just doesnt print for some reason
@@ -1017,8 +1019,8 @@ void ViewController::update(Player * p,int playerNum,shared_ptr<Map> m){
         wattroff(mapwin,A_BLINK);
 
     if(highlight1 == 3 && highlight2 == 0){
-        x = m->getPosX(playerCount);
-        y = m->getPosY(playerCount);
+        x = map->getPosX(playerCount);
+        y = map->getPosY(playerCount);
         
         wattron(mapwin,A_BLINK);
         wattron(mapwin,A_REVERSE);
@@ -1027,9 +1029,43 @@ void ViewController::update(Player * p,int playerNum,shared_ptr<Map> m){
         wattroff(mapwin,A_BLINK);
     }
     
+    //print each attack going
+    
+    if(AtkList.Size() != -1){
+        for (size_t i = 0; i < (AtkList.Size()+1); i++)
+        {
+            shared_ptr<Holder> h;
+            h = AtkList.getAttack(i);
+
+            //get positions of both players
+            double x1 = (double)map->getPosX(h->whoDidIt), y1 = (double)map->getPosY(h->whoDidIt);
+            double x2 = (double)map->getPosX(h->toWhom)  , y2 = (double)map->getPosY(h->toWhom);
+            double x = ((x1-x2)/(h->Maxtime))*(h->Maxtime-h->time); //the piece to be added to towhom
+            double y = ((y1-y2)/(h->Maxtime))*(h->Maxtime-h->time); 
+            int posy = (int)y1-y;
+            int posx = (int)x1-x;
+
+            if(has_colors()){
+
+                start_color();
+                init_pair(1,COLOR_GREEN,COLOR_WHITE);
+                wattron(mapwin,COLOR_PAIR(1));
+            }
+
+            wattron(mapwin,A_BLINK);
+            mvwprintw(mapwin,posy,posx,"@");
+            wattroff(mapwin,A_BLINK);
+
+            if(has_colors()){
+                wattroff(mapwin,COLOR_PAIR(1));
+            }
+        }
+    }
+    
+    
 }
 
-void ViewController::updateMap(shared_ptr<Map> m){
+void ViewController::updateMap(shared_ptr<Map> map){
     for (size_t y = 0; y < 16; y++)
     {
         wmove(mapwin,1+y,1);
@@ -1039,7 +1075,7 @@ void ViewController::updateMap(shared_ptr<Map> m){
        }
     }
 
-    for (size_t i = 0; i < m->getMax(); i++)
+    for (size_t i = 0; i < map->getMax(); i++)
     {
         wattron(mapwin,A_REVERSE);
         
@@ -1048,16 +1084,16 @@ void ViewController::updateMap(shared_ptr<Map> m){
             start_color();
             init_pair(1,COLOR_WHITE,COLOR_RED);
 
-            if(m->IsPlayerDead(i)){
+            if(map->IsPlayerDead(i)){
                 wattron(mapwin,COLOR_PAIR(1));
             }
         }
 
-        if(m->IsPlayerDead(i)){
+        if(map->IsPlayerDead(i)){
             wattron(mapwin,A_DIM);
         }
 
-        wmove(mapwin,m->getPosY(i),m->getPosX(i));
+        wmove(mapwin,map->getPosY(i),map->getPosX(i));
         wprintw(mapwin,"O");
 
         if(has_colors()){
@@ -1068,6 +1104,7 @@ void ViewController::updateMap(shared_ptr<Map> m){
         wattroff(mapwin,A_REVERSE);
     }
 
+    
     
 }
 

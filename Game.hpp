@@ -25,7 +25,7 @@ private:
     //Visual & Control
     shared_ptr<ViewController> VC = make_shared<ViewController>();
     shared_ptr<Map> M;
-    Attack ATKlist;
+    Attack Atklist;
 
     //Players Resaources and Manipulation
     vector<Player> p;
@@ -43,6 +43,7 @@ private:
 
     bool attackProtocal();
     int attackOnTitan();
+    void CheckPlayersAlive();
 
     void menuLoop(int &whichMenu);
 
@@ -57,7 +58,7 @@ public:
 };
 
 Game::Game(){
-    ATKlist = Attack();
+    Atklist = Attack();
 }
 
 int Game::findPlayer(int ID){
@@ -138,23 +139,27 @@ int Game::gameLoop(){
     StartGame();
     do{
         //if true do game loop 
+        Atklist.NextTurn();
+        
         if(notSurrendered == true){
             dontExit = true;
 
             //this is the menu loops
             VC->updateMap(M);
             VC->resetMenu();
-            ATKlist.NextTurn();
-            VC->update(&p[PlayersNumbers.Current],PlayersNumbers.Current,M);
+            VC->update(&p[PlayersNumbers.Current],PlayersNumbers.Current,M,Atklist);
             VC->refresh();
 
             attackOnTitan();
 
+            CheckPlayersAlive();
+            if(PlayersNumbers.Max <= 1){
+                return 0;
+            }
             do{ 
 
                 whichMenuNum = VC->resetMenuPartial();
-                VC->update(&p[PlayersNumbers.Current],PlayersNumbers.Current,M);
-                VC->refresh();
+                
                 menuLoop(whichMenuNum);
 
                 whichMenuNum = actionTaken();
@@ -170,9 +175,10 @@ int Game::gameLoop(){
                 }else if(whichMenuNum == -1){ // surrendered
                     dontExit = false;
                     PlayersNumbers.Max--;
-                    //remove player from Map
-                    M->PlayerIsDead(p.at(PlayersNumbers.Current).getID());
 
+                    Atklist.PlayerIsDied(p.at(PlayersNumbers.Current).getID());
+                    M->PlayerIsDead(p.at(PlayersNumbers.Current).getID());
+                    
                     p.erase(p.begin() + PlayersNumbers.Current);
                     if(PlayersNumbers.Current == PlayersNumbers.Max){
                         PlayersNumbers.Current = 0;   
@@ -188,15 +194,35 @@ int Game::gameLoop(){
 }
 
 int Game::getNum(){
-    return ATKlist.Size();
+    return Atklist.Size();
+}
+
+void Game::CheckPlayersAlive(){
+    for (size_t i = 0; i < PlayersNumbers.Max; i++)
+    {
+        if(p[i].IsPlayerDead()){
+        
+            PlayersNumbers.Max--;
+
+            Atklist.PlayerIsDied(p.at(i).getID());
+            M->PlayerIsDead(p.at(i).getID());
+                    
+            p.erase(p.begin() + i);
+
+            if(PlayersNumbers.Current == PlayersNumbers.Max){
+                PlayersNumbers.Current = 0;   
+            }
+        }
+    }
+    
 }
 
 void Game::menuLoop(int &whichMenuNum){
     do{
-        VC->update(&p[PlayersNumbers.Current],PlayersNumbers.Current,M);
+        VC->update(&p[PlayersNumbers.Current],PlayersNumbers.Current,M,Atklist);
         VC->refresh();
         while(whichMenuNum == -1){
-        VC->update(&p[PlayersNumbers.Current],PlayersNumbers.Current,M);
+        VC->update(&p[PlayersNumbers.Current],PlayersNumbers.Current,M,Atklist);
         VC->refresh();   
         whichMenuNum = VC->getMenuMV();
         }
@@ -206,7 +232,7 @@ void Game::menuLoop(int &whichMenuNum){
         }
 
         while(whichMenuNum == -2){
-            VC->update(&p[PlayersNumbers.Current],PlayersNumbers.Current,M);
+            VC->update(&p[PlayersNumbers.Current],PlayersNumbers.Current,M,Atklist);
             VC->refresh();
             whichMenuNum = VC->getSubMenuMV();
         }   
@@ -216,7 +242,7 @@ void Game::menuLoop(int &whichMenuNum){
         }
 
         while(whichMenuNum == -3){
-            VC->update(&p[PlayersNumbers.Current],PlayersNumbers.Current,M);
+            VC->update(&p[PlayersNumbers.Current],PlayersNumbers.Current,M,Atklist);
             VC->refresh();
             whichMenuNum = VC->getInputMenuMV(M);
         }
@@ -245,7 +271,7 @@ bool Game::attackProtocal(){
     p[PlayersNumbers.Current].troops[1]->RemoveTroops(VC->getKnightCount());
     p[PlayersNumbers.Current].troops[2]->RemoveTroops(VC->getDefenderCount());
 
-    ATKlist.createNewAttack(&p[PlayersNumbers.Current],M,VC->getPlayerCount(),PlayersNumbers.Current,VC->getArcherCount(),VC->getKnightCount(),VC->getDefenderCount(),VC->getAttackChoice());
+    Atklist.createNewAttack(&p[PlayersNumbers.Current],M,VC->getPlayerCount(),PlayersNumbers.Current,VC->getArcherCount(),VC->getKnightCount(),VC->getDefenderCount(),VC->getAttackChoice());
     return true;
 };
 
@@ -256,10 +282,10 @@ int Game::attackOnTitan(){
     int Damage = 0;
     shared_ptr<Holder> Attacker;
     do{
-        attackLog = ATKlist.AmIBeingAttacked(p[PlayersNumbers.Current].getID());
+        attackLog = Atklist.AmIBeingAttacked(p[PlayersNumbers.Current].getID());
         if(attackLog != -1){
-            choiceDefend = VC->StartAttack(ATKlist.getAttack(attackLog));
-            Attacker = ATKlist.getAttack(attackLog);
+            choiceDefend = VC->StartAttack(Atklist.getAttack(attackLog));
+            Attacker = Atklist.getAttack(attackLog);
             int choiceAttack = Attacker->attackChoice;
 
             //No what we know we are being attacked and the player has gotten his defends style lets fo back to our handy chart
@@ -396,13 +422,13 @@ int Game::attackOnTitan(){
             
             vector<string> s;
             s.push_back("You Have Taken ");
-            s[0] += std::to_string(AtkUnitsLeft);
+            s[0] += std::to_string((int)AtkUnitsLeft);
             s[0] += " Damage ";
             if(alive == -1){
                 s[0] += "and you are dead!";
             }
             s.push_back("Additonally you have lost ");
-            s[1] += std::to_string(AtkLoot);
+            s[1] += std::to_string((int)AtkLoot);
             s[1] += " material";
         
             VC->sendMsg(s);
@@ -469,7 +495,7 @@ int Game::attackOnTitan(){
                 }
             }
             
-            attackLog = ATKlist.removeAttack(attackLog);
+            attackLog = Atklist.removeAttack(attackLog);
         }
 
     }while(attackLog != -1);

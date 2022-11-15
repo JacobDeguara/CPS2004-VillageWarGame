@@ -19,12 +19,12 @@ class Player
 private:
     int ID;
 
-    int health= 100; // hp of Village
+    int health= 1; // hp of Village
     struct{
-        int wood =999;
-        int stone =999;
-        int iron =999;
-        int food =999;
+        int wood =10;
+        int stone =10;
+        int iron =2;
+        int food =4;
         int size = 4;
     }res;
 
@@ -44,6 +44,14 @@ public:
     int getResSize();
     int RoundEnd();
     int takeDamage(int hp);
+
+    bool IsPlayerDead(){
+        if(health < 1){
+            return true;
+        }else{
+            return false;
+        }
+    };
 
     vector<shared_ptr<Buildings>> buildings = {
         make_shared<WoodCutter>(),

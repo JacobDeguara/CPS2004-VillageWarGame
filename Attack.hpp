@@ -19,6 +19,7 @@ struct Holder{
         make_shared<Knight>(5,5,5,5),
         make_shared<Defender>(7,3,3,7),
     };
+    int Maxtime; // for VC
     int time;
     int whoDidIt;
     int toWhom;
@@ -38,6 +39,7 @@ public:
     void createNewAttack(Player * p,shared_ptr<Map> m,int toWhom,int whoDidIt,int archerC,int knightC,int DefenderC,int attackChoice);
     int removeAttack(int meID);
     int AmIBeingAttacked(int meID);
+    void PlayerIsDied(int meID);
     
     shared_ptr<Holder> getAttack(int Num){
         return listOfAttacks[Num];
@@ -45,14 +47,25 @@ public:
 
     //reduces the time by 1
     void NextTurn(){
-        for(auto &i : listOfAttacks){
-            i->time--;
+        for (size_t i = 0; i < listOfAttacks.size(); i++)
+        {   
+            if(listOfAttacks[i]->time !=0){
+                listOfAttacks[i]->time -= 1;
+            }
         }
     };
 
     int Size(){
         return MaxSize;
     };
+
+    int getNum(int num){
+        if(num < MaxSize){
+            return listOfAttacks[num]->time;
+        }
+        return 0;
+    }
+
 };
 
 Attack::Attack()
@@ -94,7 +107,9 @@ void Attack::createNewAttack(Player * p,shared_ptr<Map> m,int toWhom,int whoDidI
     }else{
         time = 1;
     }
-
+    
+    listOfAttacks.at(MaxSize)->time = time;
+    listOfAttacks.at(MaxSize)->Maxtime = time;
 }
 
 int Attack::removeAttack(int meID){
@@ -106,11 +121,21 @@ int Attack::removeAttack(int meID){
     return 0;
 }
 
+void Attack::PlayerIsDied(int meID){
+    for (size_t i = 0; i < listOfAttacks.size(); i++)
+    {
+        if(listOfAttacks[i]->toWhom == meID){
+            removeAttack(i);
+            MaxSize--;
+        }
+    }
+}
+
 // returns the list number if true else returns -1
 int Attack::AmIBeingAttacked(int meID)
 {
     for(int i=0; i < listOfAttacks.size(); i++){
-        if((listOfAttacks[i]->toWhom == meID) && (listOfAttacks[i]->time <= 0)){
+        if((listOfAttacks[i]->toWhom == meID) && (listOfAttacks[i]->time == 0)){
             return i;
         }
     }

@@ -7,6 +7,7 @@
 #include <cstdlib>
 #include <ctime>
 
+
 using std::vector;
 
 struct pos{
@@ -18,6 +19,7 @@ class Map
 {
 private:
     vector<pos> position;
+    vector<pos> Aiposition;
     vector<int> IsDead;
     int Max;
 
@@ -84,7 +86,6 @@ Map::Map(int maxNumOfPlayers)
         
         position.push_back(make_pos(randX,randY));   
     }
-
 
     //assign all player not dead
     IsDead.assign(Max,false);
