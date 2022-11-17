@@ -16,23 +16,31 @@ using std::string;
 using std::vector;
 using std::array;
 
-/*Brief: ViewController class deals with The visual & control aspects
-* Extra: this class also gives the costs & action to be taken by the game 
-*/
+/**
+ * @brief the ViewController class Manages the visual and Control aspects of the game
+ * 
+ */
 class ViewController
 {
 private:
+
+    //Every window being used globally
+
     WINDOW * menuwin;
     WINDOW * submenuwin;
     WINDOW * reswin;
     WINDOW * inwin;
     WINDOW * mapwin;
 
+    //this is mainly to simply nameing and compatibitly
+
     struct{
         string menuName;
         vector<string>submenuNames;
         int submenuSize;
     }MenuNames[4];
+
+    //these inputs are related to the output stuff 
 
     int highlight1 = 0;
     int highlight2 =-1;
@@ -43,15 +51,29 @@ private:
     int archerC=0,knightC=0,defenderC=0;
     int wood=0,stone=0,iron=0,food=0;
 
+    //setting up functions
+
     WINDOW * VisualCreation(int x1,int y1,int x2,int y2);
     void windowCreation(int yMax, int xMax);
+
     void choicesCreation();
     void costCreationTroop(int food,Player * currentPlayer); 
     void costCreationBuildings(int wood,int stone,int iron,int food,Player * currentPlayer);
+    void updateMap(shared_ptr<Map> map);
+
+    //update windows seperatly
+
+    void menuUpdate(const char * str);
+    void submenuUpdate(const char * str);
+    void resUpdate(const char * str,Player * currentPlayer);
+    void inputUpdate(const char * str,Player * currentPlayer,int playerNum,shared_ptr<Map> map);
+    void mapUpdate(const char * str,Player * currentPlayer,shared_ptr<Map> map,Attack AtkList);
 
 public:
     ViewController();
     ~ViewController() = default;
+
+    //These are all menu subsystem is to allow the player get an inputs
 
     int getMenuMV(); 
     int getSubMenuMV(); 
@@ -61,12 +83,15 @@ public:
     void resetMenu(); 
     int resetMenuPartial(); 
 
+    //These are all updates and runners to allow comtaibility 
+
     void updateStart(int &numOfPlayer, int &numOfAi);
     void update(Player * currentPlayer,int playerNum,shared_ptr<Map> map,Attack AtkList);
-    void updateMap(shared_ptr<Map> map);
     void refresh();
     int StartAttack(shared_ptr<Holder> Attack);
     
+    //These are all get stuff for the control aspect
+
     int getCount();
     int getWoodCost();
     int getStoneCost();
@@ -79,10 +104,48 @@ public:
     int getDefenderCount();
     int getAttackChoice();
     int getPlayerCount();
-    
+
     void sendMsg(vector<string> str);
 };
 
+/**
+ * @brief Construct a new View Controller:: View Controller object -- Creates the windows and sets up menus
+ */
+ViewController::ViewController()
+{   
+    int yMax, xMax;
+    getmaxyx(stdscr,yMax,xMax);
+    windowCreation(yMax,xMax);
+    choicesCreation();
+}
+/**
+ * @brief Takes x1,x2,y1,y2 to use as a divition to create a window and return it
+ * 
+ * @param x1 
+ * @param y1 
+ * @param x2 
+ * @param y2 
+ * @return WINDOW* 
+ */
+WINDOW * ViewController::VisualCreation(int x1,int y1,int x2,int y2){
+    int yMax,xMax;
+    getmaxyx(stdscr,yMax,xMax);
+
+    WINDOW * newWin = newwin(yMax/y1,xMax/x1,yMax/y2,xMax/x2); 
+    box(newWin,0,0); //create box
+    refresh();
+    wrefresh(newWin);
+    keypad(newWin,true);
+
+    return newWin;
+}
+
+/**
+ * @brief Creates each window to be used globally
+ * 
+ * @param yMax 
+ * @param xMax 
+ */
 void ViewController::windowCreation(int yMax,int xMax){
     //windows Created    
         //resourse window
@@ -121,7 +184,66 @@ void ViewController::windowCreation(int yMax,int xMax){
         keypad(mapwin,true);
 }
 
-//Gets the input from menuWin and changes highlight1
+/**
+ * @brief Creates the menu names in the stuct MENUNAMES
+ */
+void ViewController::choicesCreation()
+{
+    MenuNames[0].menuName = "Create Building";
+    MenuNames[1].menuName = "Upgrade Building";
+    MenuNames[2].menuName = "Upgrade Troops ";
+    MenuNames[3].menuName = "Actions        ";
+
+    string str1[] ={"Wood Cutter      ","Stone Miner      ","Iron Miner       ","Battle Trainer   ","Archery Range    ","Knighting Palace ","Defender Barracks"};
+    string str2[] ={"Archer           ","Knight           ","Defender         "};
+    string str3[] ={"Attack           ","End Turn         ","Surrender        "};
+    int size1 = 7;
+    int size2 = 3;
+    MenuNames[0].submenuNames.assign(str1,str1+size1);
+    MenuNames[0].submenuSize = size1;
+    MenuNames[1].submenuNames.assign(str1,str1+size1);
+    MenuNames[1].submenuSize = size1;
+    MenuNames[2].submenuNames.assign(str2,str2+size2);
+    MenuNames[2].submenuSize = size2;
+    MenuNames[3].submenuNames.assign(str3,str3+size2);
+    MenuNames[3].submenuSize = size2;
+}
+
+/**
+ * @brief Takes Food and sets the proper cost for visual and control
+ * 
+ * @param food 
+ * @param currentPlayer 
+ */
+void ViewController::costCreationTroop(int food,Player * currentPlayer){
+    this->wood = 0;
+    this->stone= 0;
+    this->iron = 0;
+    this->food = food * count + 1*(currentPlayer->troops[highlight2]->getLevel());
+}
+
+/**
+ * @brief Takes parameters for each resource to set them for visual and control
+ * 
+ * @param wood 
+ * @param stone 
+ * @param iron 
+ * @param food 
+ * @param currentPlayer 
+ */
+void ViewController::costCreationBuildings(int wood,int stone,int iron,int food,Player * currentPlayer){
+    this->wood = wood *(count *(currentPlayer->buildings[highlight2]->getamount()+currentPlayer->buildings[highlight2]->getLevel()));
+    this->stone= stone *(count *(currentPlayer->buildings[highlight2]->getamount()+currentPlayer->buildings[highlight2]->getLevel()));
+    this->iron = iron  *(count *(currentPlayer->buildings[highlight2]->getamount()+currentPlayer->buildings[highlight2]->getLevel()));
+    this->food = food  *(count *(currentPlayer->buildings[highlight2]->getamount()+currentPlayer->buildings[highlight2]->getLevel()));
+}
+
+/**
+ * @brief Gets the input from the user  --
+ * This menu is (-1)
+ * 
+ * @return int 
+ */
 int ViewController::getMenuMV()
 {
     int choice = wgetch(menuwin);
@@ -149,7 +271,12 @@ int ViewController::getMenuMV()
     return -1; // -2 is default loop for main menu
 }
 
-//Gets the input from submenuWin and changes highlight2
+/**
+ * @brief Gets the input from the user  --
+ * This menu is (-2)
+ * 
+ * @return int 
+ */
 int ViewController::getSubMenuMV()
 {
     int choice2 = wgetch(submenuwin);
@@ -188,9 +315,14 @@ int ViewController::getSubMenuMV()
     return -2; // -1 is default loop for sub menu
 }
 
-//Gets the input from inputWin and changes highlight3 accordingly
+/**
+ * @brief Gets the input from the user  --
+ * This menu is (-3)
+ * 
+ * @return int 
+ */
 int ViewController::getInputMenuMV(shared_ptr<Map> map){
-    if(highlight1 != 3){ // if choice1 = 1-3 
+    if(highlight1 != 3){ // for choice 0-2 
         highlight4col = highlight4row =-1;
         int choice3 = wgetch(inwin);
         switch(choice3){
@@ -227,7 +359,7 @@ int ViewController::getInputMenuMV(shared_ptr<Map> map){
         return -3;
     }
 
-    if((highlight1 == 3) && (highlight2 == 0)){
+    if((highlight1 == 3) && (highlight2 == 0)){ //for Attack only
             highlight3 = -1;
         int choice3 = wgetch(inwin);
 
@@ -270,7 +402,7 @@ int ViewController::getInputMenuMV(shared_ptr<Map> map){
                 return 0;//selected choice
             }
             int temp;
-            if(highlight4row==0){
+            if(highlight4row==0){ // selected '<' = decrease by one
                 switch(highlight4col){
                     case 0:
                         
@@ -302,7 +434,8 @@ int ViewController::getInputMenuMV(shared_ptr<Map> map){
                         }
                         break;
                 }
-            }else if(highlight4row==2){
+            }else if(highlight4row==2){ //selected '>' = increase by one
+                
                 switch(highlight4col){
                     case 0:
                         
@@ -340,14 +473,21 @@ int ViewController::getInputMenuMV(shared_ptr<Map> map){
     return -2;
 }
 
-//prepares the change from menuWin to submenuWin
+/**
+ * @brief Prepares the sub menu
+ * 
+ */
 void ViewController::prepSubMenu(){
     if(highlight2 == -1){
         highlight2 = 0;
     }  
 }
 
-//prepares the change from submenuWin to inputWin
+/**
+ * @brief Prepares the Input menu
+ * 
+ * @param map - pointer
+ */
 void ViewController::prepInputMenu(shared_ptr<Map> map){
     count = 1;
     archerC =0;
@@ -363,7 +503,10 @@ void ViewController::prepInputMenu(shared_ptr<Map> map){
     }
 }
 
-//resets the menu back to menuWin
+/**
+ * @brief Resets the menu completly from the start
+ * 
+ */
 void ViewController::resetMenu(){
     highlight1 = 0;
     highlight2 = -1;
@@ -377,6 +520,11 @@ void ViewController::resetMenu(){
     playerCount = 0;
 }
 
+/**
+ * @brief Resets the menu Partially to not remove the current selection 
+ * 
+ * @return int 
+ */
 int ViewController::resetMenuPartial(){
     highlight3 = -1;
     highlight4col = -1;
@@ -390,66 +538,12 @@ int ViewController::resetMenuPartial(){
     }
 }
 
-//Gives The stuct MenuNames all the Strings for the menus
-void ViewController::choicesCreation()
-{
-    MenuNames[0].menuName = "Create Building";
-    MenuNames[1].menuName = "Upgrade Building";
-    MenuNames[2].menuName = "Upgrade Troops ";
-    MenuNames[3].menuName = "Actions        ";
-
-    string str1[] ={"Wood Cutter      ","Stone Miner      ","Iron Miner       ","Battle Trainer   ","Archery Range    ","Knighting Palace ","Defender Barracks"};
-    string str2[] ={"Archer           ","Knight           ","Defender         "};
-    string str3[] ={"Attack           ","End Turn         ","Surrender        "};
-    int size1 = 7;
-    int size2 = 3;
-    MenuNames[0].submenuNames.assign(str1,str1+size1);
-    MenuNames[0].submenuSize = size1;
-    MenuNames[1].submenuNames.assign(str1,str1+size1);
-    MenuNames[1].submenuSize = size1;
-    MenuNames[2].submenuNames.assign(str2,str2+size2);
-    MenuNames[2].submenuSize = size2;
-    MenuNames[3].submenuNames.assign(str3,str3+size2);
-    MenuNames[3].submenuSize = size2;
-}
-
-void ViewController::costCreationTroop(int food,Player * currentPlayer){
-    this->wood = 0;
-    this->stone= 0;
-    this->iron = 0;
-    this->food = food * count + 1*(currentPlayer->troops[highlight2]->getLevel());
-}
-
-void ViewController::costCreationBuildings(int wood,int stone,int iron,int food,Player * currentPlayer){
-    this->wood = wood *(count *(currentPlayer->buildings[highlight2]->getamount()+currentPlayer->buildings[highlight2]->getLevel()));
-    this->stone= stone *(count *(currentPlayer->buildings[highlight2]->getamount()+currentPlayer->buildings[highlight2]->getLevel()));
-    this->iron = iron  *(count *(currentPlayer->buildings[highlight2]->getamount()+currentPlayer->buildings[highlight2]->getLevel()));
-    this->food = food  *(count *(currentPlayer->buildings[highlight2]->getamount()+currentPlayer->buildings[highlight2]->getLevel()));
-}
-
-//Connects all the windows and preps the Menu
-ViewController::ViewController()
-{   
-    int yMax, xMax;
-    getmaxyx(stdscr,yMax,xMax);
-    windowCreation(yMax,xMax);
-    choicesCreation();
-}
-
-WINDOW * ViewController::VisualCreation(int x1,int y1,int x2,int y2){
-    int yMax,xMax;
-    getmaxyx(stdscr,yMax,xMax);
-
-    WINDOW * newWin = newwin(yMax/y1,xMax/x1,yMax/y2,xMax/x2); 
-    box(newWin,0,0); //create box
-    refresh();
-    wrefresh(newWin);
-    keypad(newWin,true);
-
-    return newWin;
-}
-
-//Does the start of the game
+/**
+ * @brief Runs the Main-Menu and returns the number of players and Ai
+ * 
+ * @param numOfPlayer 
+ * @param numOfAi 
+ */
 void ViewController::updateStart(int &numOfPlayer, int &numOfAi){
     
     WINDOW * win = VisualCreation(2,2,4,4);
@@ -592,7 +686,14 @@ void ViewController::updateStart(int &numOfPlayer, int &numOfAi){
     wrefresh(win);
 }
 
-//Re-Writes(updates) the View cash to change any changes
+/**
+ * @brief Updates the Windows cash to update any changes
+ * 
+ * @param currentPlayer The Player that is currently in play
+ * @param playerNum The number of players
+ * @param map - the map object
+ * @param AtkList - The entire attack object for the list
+ */
 void ViewController::update(Player * currentPlayer,int playerNum,shared_ptr<Map> map,Attack AtkList){
     const char * str;
 
@@ -603,6 +704,21 @@ void ViewController::update(Player * currentPlayer,int playerNum,shared_ptr<Map>
     box(mapwin,0,0);
     box(inwin,0,0);
 
+    menuUpdate(str);
+    submenuUpdate(str);
+    resUpdate(str,currentPlayer);
+    inputUpdate(str,currentPlayer,playerNum,map);
+    updateMap(map);
+    mapUpdate(str,currentPlayer,map,AtkList);
+    
+}
+
+/**
+ * @brief Updates the menu window
+ * 
+ * @param str 
+ */
+void ViewController::menuUpdate(const char * str){
     //Menu window  
     mvwprintw(menuwin,0,1,"Menu-(UP/DOWN/LEFT)");
 
@@ -616,7 +732,14 @@ void ViewController::update(Player * currentPlayer,int playerNum,shared_ptr<Map>
         mvwprintw(menuwin,i+1,1,"> %s",str); //print string
         wattroff(menuwin,A_REVERSE);    
     }
+}
 
+/**
+ * @brief Updates the sub menu window
+ * 
+ * @param str 
+ */
+void ViewController::submenuUpdate(const char * str){
     //SubMenu Window
     mvwprintw(submenuwin,0,1,"Submenu-(UP/DOWN/ENTER/LEFT)");
 
@@ -640,6 +763,15 @@ void ViewController::update(Player * currentPlayer,int playerNum,shared_ptr<Map>
         wattroff(submenuwin,A_REVERSE);    
     }
 
+}
+
+/**
+ * @brief Updates the Res window
+ * 
+ * @param str 
+ * @param currentPlayer 
+ */
+void ViewController::resUpdate(const char * str,Player * currentPlayer){
     //Resource Window
     mvwprintw(reswin,0,1,"Resources");
     int j=1,jHold;
@@ -723,6 +855,17 @@ void ViewController::update(Player * currentPlayer,int playerNum,shared_ptr<Map>
         mvwprintw(reswin,i,1,"                                             ");
     }
 
+}
+
+/**
+ * @brief Updates the input window
+ * 
+ * @param str 
+ * @param currentPlayer 
+ * @param playerNum 
+ * @param map 
+ */
+void ViewController::inputUpdate(const char * str,Player * currentPlayer,int playerNum,shared_ptr<Map> map){
     //Input Window
     mvwprintw(inwin,0,1,"Inputs-Menu");
     if((highlight1 != 3)&&(highlight2 != -1)){
@@ -998,6 +1141,18 @@ void ViewController::update(Player * currentPlayer,int playerNum,shared_ptr<Map>
         mvwprintw(inwin,7,1,"\t\t\t\t\t\t\t");
     }
 
+}
+
+/**
+ * @brief Updates the map window
+ * 
+ * @param str 
+ * @param currentPlayer 
+ * @param map 
+ * @param AtkList 
+ */
+void ViewController::mapUpdate(const char * str,Player * currentPlayer,shared_ptr<Map> map,Attack AtkList){
+    
     //Map Window
     mvwprintw(mapwin,0,1,"Map-Player:-%d",currentPlayer->getID());
 
@@ -1007,7 +1162,7 @@ void ViewController::update(Player * currentPlayer,int playerNum,shared_ptr<Map>
 
     wprintw(mapwin,"-x=%d-y=%d",x,y);
 
-    updateMap(map);
+    
         
     //bug here dont know why 
     //just doesnt print for some reason
@@ -1031,8 +1186,8 @@ void ViewController::update(Player * currentPlayer,int playerNum,shared_ptr<Map>
     
     //print each attack going
     
-    if(AtkList.Size() != -1){
-        for (size_t i = 0; i < (AtkList.Size()+1); i++)
+    if(AtkList.getSize() != -1){
+        for (size_t i = 0; i < (AtkList.getSize()+1); i++)
         {
             shared_ptr<Holder> h;
             h = AtkList.getAttack(i);
@@ -1065,6 +1220,11 @@ void ViewController::update(Player * currentPlayer,int playerNum,shared_ptr<Map>
     
 }
 
+/**
+ * @brief A brief Update to change the constants in the map
+ * 
+ * @param map 
+ */
 void ViewController::updateMap(shared_ptr<Map> map){
     for (size_t y = 0; y < 16; y++)
     {
@@ -1108,7 +1268,10 @@ void ViewController::updateMap(shared_ptr<Map> map){
     
 }
 
-//Refreshes the View for the Viewer to see then change
+/**
+ * @brief Refresh each window
+ * 
+ */
 void ViewController::refresh(){
     wrefresh(reswin);
     wrefresh(menuwin);
@@ -1117,6 +1280,12 @@ void ViewController::refresh(){
     wrefresh(mapwin);
 }
 
+/**
+ * @brief Runs the Menu for when a player is under attack
+ * 
+ * @param Attack from the list that is currently being used
+ * @return int 
+ */
 int ViewController::StartAttack(shared_ptr<Holder> Attack){
     WINDOW * win = VisualCreation(2,2,4,4);
     bool hasTheyNotSelectedSomething = true;
@@ -1191,62 +1360,119 @@ int ViewController::StartAttack(shared_ptr<Holder> Attack){
     return highlight1;
 }
 
-
-//Returns the count
+/**
+ * @brief Returns the count
+ * 
+ * @return int 
+ */
 int ViewController::getCount(){
     return this->count;
 }
 
-//Returns the wood cost
+/**
+ * @brief returns the wood cost
+ * 
+ * @return int 
+ */
 int ViewController::getWoodCost(){
     return this->wood;
 }
 
-//Returns the stone cost
+/**
+ * @brief returns the stone cost
+ * 
+ * @return int 
+ */
 int ViewController::getStoneCost(){
     return this->stone;
 }
 
-//Returns the iron cost
+/**
+ * @brief returns the iron cost
+ * 
+ * @return int 
+ */
 int ViewController::getIronCost(){
     return this->iron;
 }
 
-//Returns the food cost
+/**
+ * @brief returns food Cost
+ * 
+ * @return int 
+ */
 int ViewController::getFoodCost(){
     return this->food;
 }
 
-//Returns the Choice from the first menu
+/**
+ * @brief Returns the first choice from the menu
+ * 
+ * @return int 
+ */
 int ViewController::getChoice1(){
     return this->highlight1;
 }
 
-//returns the Choice from the second menu
+/**
+ * @brief Returns the second choice from the submenu
+ * 
+ * @return int 
+ */
 int ViewController::getChoice2(){
     return this->highlight2;
 }
 
+/**
+ * @brief returns the amount of Knights to attack with
+ * 
+ * @return int 
+ */
 int ViewController::getKnightCount(){
     return this->knightC;
 }
 
+/**
+ * @brief returns the amount of Archers to attack with
+ * 
+ * @return int 
+ */
 int ViewController::getArcherCount(){
     return this->archerC;
 }
 
+/**
+ * @brief returns the amount of Defenders to attack with
+ * 
+ * @return int 
+ */
 int ViewController::getDefenderCount(){
     return this->defenderC;
 }
 
+/**
+ * @brief returns the Choice of attack from the attacker
+ * 
+ * @return int 
+ */
 int ViewController::getAttackChoice(){
     return this->highlight4row;
 }
 
+/**
+ * @brief returns the Player to attack
+ * 
+ * @return int 
+ */
 int ViewController::getPlayerCount(){
     return this->playerCount;
 }
 
+/**
+ * @brief Sends a pop up message and prints str
+ * 
+ * @param str 
+ */
 void ViewController::sendMsg(vector<string> str){
     WINDOW * win = VisualCreation(2,2,4,4);
     for (size_t i = 0; i < str.size(); i++)

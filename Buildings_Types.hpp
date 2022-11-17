@@ -1,7 +1,8 @@
 #ifndef _BUILDING_TYPES_H_
 #define _BUILDING_TYPES_H_
 #include "Buildings.hpp"
-
+/*---------------------------*/
+//generates Wood
 class WoodCutter: public Buildings
 {
 private:
@@ -19,6 +20,7 @@ int WoodCutter::getGen()
 };
 
 /*---------------------------*/
+//Generates stone
 class StoneMiner: public Buildings
 {
 private:
@@ -36,6 +38,7 @@ int StoneMiner::getGen()
 };
 
 /*---------------------------*/
+//Generates Iron
 class IronMiner: public Buildings
 {
 private:
@@ -53,6 +56,7 @@ int IronMiner::getGen()
 };
 
 /*---------------------------*/
+//Generates Food
 class BattleTrainer : public Buildings
 {
 private:
@@ -70,6 +74,7 @@ int BattleTrainer::getGen()
 }
 
 /*---------------------------*/
+//Generates Aracher troops
 class ArcheryRange : public Buildings
 {
 private:
@@ -87,6 +92,7 @@ int ArcheryRange::getGen()
 };
 
 /*---------------------------*/
+//generates Knights Troops
 class KnightingPalace: public Buildings
 {
 private:
@@ -104,6 +110,7 @@ int KnightingPalace::getGen()
 };
 
 /*---------------------------*/
+//generates Defender troops
 class DefenderBarracks: public Buildings
 {
 private:

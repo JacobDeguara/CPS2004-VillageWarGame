@@ -18,7 +18,7 @@ int main(void){
     m->gameLoop();
 
     endwin();
-    cout << m->getNum() <<endl;
+    cout << " " <<endl;
     delete m;
 	return 0;
 }

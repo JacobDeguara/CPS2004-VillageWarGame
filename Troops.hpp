@@ -29,16 +29,28 @@ protected:
     int carryingCapacity;
 };
 
-//Stating troop stats
+/**
+ * @brief Construct a new Troops:: Troops object
+ * 
+ * @param health health
+ * @param damage damage
+ * @param acc accracy
+ * @param CC carrying capacity
+ */
 Troops::Troops(int health ,int damage ,int acc,int CC)
 {   
+    //set stats
     this->health = health;
     this->damage = damage;
     this->acc =acc;
     this->carryingCapacity = CC;
 }
 
-//upgrades Troops
+/**
+ * @brief Upgrades the Troops level and stats
+ * 
+ * @param num 
+ */
 void Troops::upgrade(int num){
     level += num;
     health += num;
@@ -46,62 +58,98 @@ void Troops::upgrade(int num){
     carryingCapacity += num;
 }
 
-//Adds Troops
+/**
+ * @brief add num amount of troops
+ * 
+ * @param num 
+ */
 void Troops::add(int num){
     amount += num;
 }
 
-//gets health
+/**
+ * @brief returns the Health
+ * 
+ * @return int 
+ */
 int Troops::getHealth()
 {
     return health;
 }
 
-//gets carringCapacity
+/**
+ * @brief returns the carrying capacity
+ * 
+ * @return int 
+ */
 int Troops::getCarryingCapacity()
 {
     return carryingCapacity;
 }
 
-//gets amount
+/**
+ * @brief returns the amount of troops
+ * 
+ * @return int 
+ */
 int Troops::getAmount()
 {
     return amount;
 }
 
-//gets level
+/**
+ * @brief returns the level
+ * 
+ * @return int 
+ */
 int Troops::getLevel()
 {
     return level;
 }
 
-//gets Damage
+/**
+ * @brief returns the Damage 
+ * 
+ * @return int 
+ */
 int Troops::getDamage()
 {
     return damage;
 }
 
+/**
+ * @brief returns the Accracy
+ * 
+ * @return int 
+ */
 int Troops::getAcc()
 {
     return acc;
 }
 
-//returns (damage + health *amount)
+/**
+ * @brief returns (damage + health *amount)
+ * 
+ * @return int 
+ */
 int Troops::getPowerRating()
 {
     return (damage + health) * amount;
 }
 
-/*This will remove by the amount
-* if(returns 0) => (amount given > amount available)
-*/
+/**
+ * @brief Remove the Troops amount by amount
+ * 
+ * @param amount amount to remove
+ * @return int -- the amount removed 
+ */
 int Troops::RemoveTroops(int amount)
 {   
     int temp;
-    if(amount <= this->amount){
+    if(amount <= this->amount){ //check if enough
         temp = amount;
-        this->amount -= amount;
-        return temp;
+        this->amount -= amount; //remove
+        return temp; //return amount removed
     }
     return 0;
 }

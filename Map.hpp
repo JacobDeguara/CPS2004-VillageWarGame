@@ -7,22 +7,33 @@
 #include <cstdlib>
 #include <ctime>
 
-
 using std::vector;
 
+/**
+ * @brief a struct ment to hold 2 variables representing x,y for positing
+ * 
+ */
 struct pos{
     int x;
     int y;
 };
 
+/**
+ * @brief The Map Class Holds The position of each player and determines the position in the constucter,
+ * @brief it also holds the Dead players and works with the Players their ID's 
+ */
 class Map
 {
 private:
+    //Holds each position of Player
     vector<pos> position;
+    //Holds each position of Ai
     vector<pos> Aiposition;
-    vector<int> IsDead;
-    int Max;
-
+    //Holds a bool of each player if their dead
+    vector<bool> IsDead;
+    //holds the max value of players
+    int max;
+    
     pos make_pos(int x,int y);
 public:
     Map(int maxNumOfPlayers);
@@ -37,76 +48,123 @@ public:
     
 };
 
+/**
+ * @brief Creates a pos struct with x,y parameters for the vector to hold
+ * 
+ * @param x 
+ * @param y 
+ * @return pos 
+ */
 pos Map::make_pos(int x, int y) {
     pos mypos = {x, y};
     return mypos;
 }
 
+/**
+ * @brief Construct a new Map:: Map object,
+ * and assign a position to each player
+ * 
+ * @param maxNumOfPlayers 
+ */
 Map::Map(int maxNumOfPlayers)
-{
+{   
+
+    /**
+     * The way im setting the position of each player is by takeing the size of the map
+     * setting the offset and range to be equal to the map / by the number of players, this will give us a box each
+     * Each box the player will the put in it useing rand,
+     * and we will offset the box by offset so we can space them out better
+     * (each box is a square)
+     */
+
+    //Randomize rand
     srand(time(0));
-    //we have a map of 16/65 which mean each player has to sit in one of these pos with close to even spacing
-    //ok so i got a good idea
-    Max = maxNumOfPlayers;
+    
+    max = maxNumOfPlayers;
 
-    //the first thing i need to do is spilt the map (65/16) base on the Num of Players evenly
-    //next we take the range and we get the coord in that range for x,y
-
+    //each ofset and range for x and y for rand
     int offsetX,offsetY;
     int rangeX,rangeY;
 
-    rangeX = offsetX = 63/Max; //we also need to be rounded and with decimal points
-    rangeY = offsetY = 16/Max; // this means overlap is possible but hopefully that happenes rarely 
-    //range will give is the box size 
+    //setting range and offset to me 
+    rangeX = offsetX = 60/max;
+    rangeY = offsetY = 20/max; 
 
-    int randX,randY;
-    int offsetdistX=0,offsetdistY=0;
-    int temp;
-    // do 0,0 box
-    randX = 1 + (offsetX*offsetdistX + rand()%rangeX);
-    randY = 1 + (offsetY*offsetdistY + rand()%rangeY);
-    position.push_back(make_pos(randX,randY));
+    int randX,randY; // The random position we use
+    int offsetdistX=0,offsetdistY=0;    
+    int temp =-2;
 
-    //we move xoffset by 1 but get a random y offset
-    //then get a random pos for the box
-    for (offsetdistX = 1; offsetdistX < Max; offsetdistX++)
+    for (offsetdistX = 0; offsetdistX < max; offsetdistX++)
     {   
-        //this is so we dont get the same pos
         do{
-            temp = offsetdistY;
-            offsetdistY = 0+rand()%(Max+1);
-        }while(temp == offsetdistY || temp == offsetdistY+1 || temp == offsetdistY -1);
-
+            offsetdistY = rand()%max; //get a random offset
+        }while(temp == offsetdistY); //that isnt the same as the before (to hopefully prevent any player next to each other)
+        temp = offsetdistY; // set temp to offset
+        
+        //get random x, y cords
         randX = 1 + (offsetX*offsetdistX + rand()%rangeX);
         randY = 1 + (offsetY*offsetdistY + rand()%rangeY);
 
-        while(randY >= 17){
-            randY--;
+        while(randY >= 17){ // just incase of out of bouce
+            randY = 16;
         }
-        
-        position.push_back(make_pos(randX,randY));   
-    }
 
+        while(randX >= 64){ // just incase of out of bouce
+            randX = 63;
+        }
+
+        position.push_back(make_pos(randX,randY));// put position in vector
+    }
+    
     //assign all player not dead
-    IsDead.assign(Max,false);
+    IsDead.assign(max,false);
 }
 
+/**
+ * @brief Returns the X position of the player using "THEIR ID"
+ * 
+ * @param i 
+ * @return int 
+ */
 int Map::getPosX(int i){
     return position[i].x;
 }
 
+/**
+ * @brief Returns the Y position of the player using "THEIR ID"
+ * 
+ * @param i 
+ * @return int 
+ */
 int Map::getPosY(int i){
     return position[i].y;
 }
 
+/**
+ * @brief Returns the Max number of players
+ * 
+ * @return int 
+ */
 int Map::getMax(){
-    return Max;
+    return max;
 }
 
+/**
+ * @brief Sets player to dead based on "THEIR ID"
+ * 
+ * @param ID 
+ */
 void Map::PlayerIsDead(int ID){
     IsDead.at(ID) = true;
 }
 
+/**
+ * @brief Checks if Player is Dead using "THEIR ID"
+ * 
+ * @param ID 
+ * @return true 
+ * @return false 
+ */
 bool Map::IsPlayerDead(int ID){
     return IsDead.at(ID) == true;
 }
