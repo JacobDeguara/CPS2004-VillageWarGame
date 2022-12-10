@@ -27,21 +27,22 @@ class Map
 private:
     //Holds each position of Player
     vector<pos> position;
-    //Holds each position of Ai
-    vector<pos> Aiposition;
     //Holds a bool of each player if their dead
     vector<bool> IsDead;
     //holds the max value of players
     int max;
+    int aiMax;
     
     pos make_pos(int x,int y);
 public:
-    Map(int maxNumOfPlayers);
+    Map(int maxNumOfPlayers,int maxNumOfAi);
     ~Map() = default;
 
     int getPosX(int i);
     int getPosY(int i);
     int getMax();
+    int getMaxMax();
+    int getMaxAi();
 
     void PlayerIsDead(int ID);
     bool IsPlayerDead(int ID);
@@ -66,7 +67,7 @@ pos Map::make_pos(int x, int y) {
  * 
  * @param maxNumOfPlayers 
  */
-Map::Map(int maxNumOfPlayers)
+Map::Map(int maxNumOfPlayers,int maxNumOfAi)
 {   
 
     /**
@@ -81,14 +82,15 @@ Map::Map(int maxNumOfPlayers)
     srand(time(0));
     
     max = maxNumOfPlayers;
+    aiMax = maxNumOfAi;
 
     //each ofset and range for x and y for rand
     int offsetX,offsetY;
     int rangeX,rangeY;
 
     //setting range and offset to me 
-    rangeX = offsetX = 60/max;
-    rangeY = offsetY = 20/max; 
+    rangeX = offsetX = 60/(max+aiMax);
+    rangeY = offsetY = 20/(max+aiMax); 
 
     int randX,randY; // The random position we use
     int offsetdistX=0,offsetdistY=0;    
@@ -115,9 +117,32 @@ Map::Map(int maxNumOfPlayers)
 
         position.push_back(make_pos(randX,randY));// put position in vector
     }
+
+    for (; offsetdistX < max + aiMax; offsetdistX++)
+    {   
+        do{
+            offsetdistY = rand()%max; //get a random offset
+        }while(temp == offsetdistY); //that isnt the same as the before (to hopefully prevent any player next to each other)
+        temp = offsetdistY; // set temp to offset
+        
+        //get random x, y cords
+        randX = 1 + (offsetX*offsetdistX + rand()%rangeX);
+        randY = 1 + (offsetY*offsetdistY + rand()%rangeY);
+
+        while(randY >= 17){ // just incase of out of bouce
+            randY = 16;
+        }
+
+        while(randX >= 64){ // just incase of out of bouce
+            randX = 63;
+        }
+
+        position.push_back(make_pos(randX,randY));// put position in vector
+    }
     
     //assign all player not dead
-    IsDead.assign(max,false);
+    IsDead.assign(max+aiMax,false);
+    
 }
 
 /**
@@ -147,6 +172,14 @@ int Map::getPosY(int i){
  */
 int Map::getMax(){
     return max;
+}
+
+int Map::getMaxMax(){
+    return max+aiMax;
+}
+
+int Map::getMaxAi(){
+    return aiMax;
 }
 
 /**

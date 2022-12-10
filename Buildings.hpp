@@ -69,6 +69,8 @@ int Buildings::getLevel()
  * 
  * @return int 
  */
-int Buildings::getGen(){}
+int Buildings::getGen(){
+    return 1;
+}
 
 #endif

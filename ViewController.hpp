@@ -129,15 +129,15 @@ ViewController::ViewController()
  */
 WINDOW * ViewController::VisualCreation(int x1,int y1,int x2,int y2){
     int yMax,xMax;
-    getmaxyx(stdscr,yMax,xMax);
+    getmaxyx(stdscr,yMax,xMax); // get max
 
-    WINDOW * newWin = newwin(yMax/y1,xMax/x1,yMax/y2,xMax/x2); 
+    WINDOW * newWin = newwin(yMax/y1,xMax/x1,yMax/y2,xMax/x2); // create window
     box(newWin,0,0); //create box
     refresh();
     wrefresh(newWin);
-    keypad(newWin,true);
+    keypad(newWin,true); // enable keypad
 
-    return newWin;
+    return newWin; // return new win
 }
 
 /**
@@ -189,11 +189,13 @@ void ViewController::windowCreation(int yMax,int xMax){
  */
 void ViewController::choicesCreation()
 {
+    // menu names
     MenuNames[0].menuName = "Create Building";
     MenuNames[1].menuName = "Upgrade Building";
     MenuNames[2].menuName = "Upgrade Troops ";
     MenuNames[3].menuName = "Actions        ";
 
+    //submenu names
     string str1[] ={"Wood Cutter      ","Stone Miner      ","Iron Miner       ","Battle Trainer   ","Archery Range    ","Knighting Palace ","Defender Barracks"};
     string str2[] ={"Archer           ","Knight           ","Defender         "};
     string str3[] ={"Attack           ","End Turn         ","Surrender        "};
@@ -246,29 +248,29 @@ void ViewController::costCreationBuildings(int wood,int stone,int iron,int food,
  */
 int ViewController::getMenuMV()
 {
-    int choice = wgetch(menuwin);
+    int choice = wgetch(menuwin); // get input
     switch(choice){
-        case KEY_UP:
+        case KEY_UP: 
             highlight1--;
-            if(highlight1 == -1){
+            if(highlight1 == -1){ // reset highlight to lowest point
                 highlight1 = 0;
             }
             break;
 
         case KEY_DOWN:
             highlight1++;
-            if(highlight1 == 4){
+            if(highlight1 == 4){ // reset highlight to highest point
                 highlight1 = 3;
             }
             break;
 
         case KEY_RIGHT:
-            return -2;
+            return -2; // go to submenu
             break;
         default:
-            break;
+            break;// do nothing
     }
-    return -1; // -2 is default loop for main menu
+    return -1; // -1 is default loop for main menu
 }
 
 /**
@@ -279,36 +281,35 @@ int ViewController::getMenuMV()
  */
 int ViewController::getSubMenuMV()
 {
-    int choice2 = wgetch(submenuwin);
+    int choice2 = wgetch(submenuwin); // get input
     switch(choice2){
         case KEY_UP:
             highlight2--;
-            if(highlight2 == -1){
+            if(highlight2 == -1){ // reset to min
                 highlight2 = 0;
             }
             break;
 
         case KEY_DOWN:
             highlight2++;
-            if(highlight2 == MenuNames[highlight1].submenuNames.size()){
-                highlight2 = MenuNames[highlight1].submenuNames.size() - 1;
+            if(highlight2 == MenuNames[highlight1].submenuNames.size()){ // reset to max based on submenu size
+                highlight2 = MenuNames[highlight1].submenuNames.size() - 1; // submenu size -1 = max
             }
             break;
 
         case KEY_LEFT:
-            highlight2 = -1;
+            highlight2 = -1; // go back to menu
             return -1;
             break;
         
         case KEY_RIGHT:
-            highlight3 = 0;
-            return -3;
+            return -3; // go to input menu
             break;
         default:
             break;
     }
-    if(choice2 == 10){
-        if(!(highlight2 == 0 && highlight1 == 3)){ // < attack
+    if(choice2 == 10){ // if enter
+        if(!(highlight2 == 0 && highlight1 == 3)){ // if not option 4 menu
             return 0; //choice selected
         }
     }
@@ -322,21 +323,21 @@ int ViewController::getSubMenuMV()
  * @return int 
  */
 int ViewController::getInputMenuMV(shared_ptr<Map> map){
-    if(highlight1 != 3){ // for choice 0-2 
-        highlight4col = highlight4row =-1;
-        int choice3 = wgetch(inwin);
+    if(highlight1 != 3){ // for menu choice 0-2 
+        highlight4col = highlight4row = -1; 
+        int choice3 = wgetch(inwin); //get choice
         switch(choice3){
             case KEY_LEFT:
                 highlight3--;
-                if(highlight3 == -1){
+                if(highlight3 == -1){ // if beyond
                     count = 1;
-                    return -2;
+                    return -2; // go back to submenu
                 }   
                 break;
 
             case KEY_RIGHT:
                 highlight3++;
-                if(highlight3 == 3){
+                if(highlight3 == 3){ // reset to max
                     highlight3 = 2;
                 }
                 break;
@@ -345,12 +346,12 @@ int ViewController::getInputMenuMV(shared_ptr<Map> map){
                 break;
         }
 
-        if(choice3 == 10){
-            if(highlight3==0){
-                if(count != 1){
+        if(choice3 == 10){ // if enter
+            if(highlight3==0){ // < reduce by 1
+                if(count != 1){  // (stays at 1)
                     count--;
                 }
-            }else if(highlight3==2){
+            }else if(highlight3==2){ // > add by 1
                 count++;
             }else{
                 return 0; //choice selected
@@ -361,28 +362,28 @@ int ViewController::getInputMenuMV(shared_ptr<Map> map){
 
     if((highlight1 == 3) && (highlight2 == 0)){ //for Attack only
             highlight3 = -1;
-        int choice3 = wgetch(inwin);
+        int choice3 = wgetch(inwin); // get choice
 
         switch(choice3){
             case KEY_LEFT:
                 highlight4row--;
-                if(highlight4row == -1){
+                if(highlight4row == -1){ // if beyond
                     knightC = archerC = defenderC = 0;
                     highlight4col = -1;
-                    return -2;
+                    return -2; // go back to submenu
                 }    
                 break;
 
-            case KEY_RIGHT:
+            case KEY_RIGHT: 
                 highlight4row++;
-                if(highlight4row == 3){
+                if(highlight4row == 3){ // reset to max
                     highlight4row = 2;
                 }
                 break;
 
             case KEY_UP:
                 highlight4col--;
-                if(highlight4col == -1){
+                if(highlight4col == -1){ // reset to min
                     highlight4col = 0;
                 }
                 break;
@@ -773,7 +774,7 @@ void ViewController::submenuUpdate(const char * str){
  */
 void ViewController::resUpdate(const char * str,Player * currentPlayer){
     //Resource Window
-    mvwprintw(reswin,0,1,"Resources");
+    mvwprintw(reswin,0,1,"Resources:-Hp-%d",currentPlayer->getHP());
     int j=1,jHold;
 
     //print basic Resources (wood,stone,iron,food)
@@ -1011,6 +1012,7 @@ void ViewController::inputUpdate(const char * str,Player * currentPlayer,int pla
         int num = 0;
         size_t i = 0;
 
+        //location display
         str = "Location: \t";
         mvwprintw(inwin,2+i,1,"%s",str);
 
@@ -1051,6 +1053,7 @@ void ViewController::inputUpdate(const char * str,Player * currentPlayer,int pla
         wprintw(inwin,">");
         wattroff(inwin,A_REVERSE);
 
+        // Units display
         for (i = 1; i < 4; i++){
             
             switch(i){
@@ -1235,7 +1238,7 @@ void ViewController::updateMap(shared_ptr<Map> map){
        }
     }
 
-    for (size_t i = 0; i < map->getMax(); i++)
+    for (size_t i = 0; i < map->getMaxMax(); i++)
     {
         wattron(mapwin,A_REVERSE);
         
@@ -1484,4 +1487,5 @@ void ViewController::sendMsg(vector<string> str){
     wclear(win);
     wrefresh(win);
 }
+
 #endif // __VIEWCONTROLLER_H__

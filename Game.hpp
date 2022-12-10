@@ -29,12 +29,13 @@ private:
     //Visual Control
     shared_ptr<ViewController> VC = make_shared<ViewController>();
     //Map
-    shared_ptr<Map> M;
+    shared_ptr<Map> map;
     //Attack-List
     Attack Atklist;
 
     //Players Res
-    vector<Player> p;
+    vector<Player> player;
+    vector<Player> ai;
     
     /**
      * @brief Holds current player and the Max number of players
@@ -44,6 +45,10 @@ private:
         int Max;
         int Current;
     }PlayersNumbers;
+    struct {
+        int Max;
+        int Current;
+    }AiNumbers;
 
     void StartGame();
 
@@ -63,6 +68,7 @@ public:
     ~Game() = default;
     
     int gameLoop();
+    void gameCredits();
 };
 
 /**
@@ -96,7 +102,7 @@ int Game::gameLoop(){
             VC->resetMenu();
         
             //Refresh the menu
-            VC->update(&p[PlayersNumbers.Current],PlayersNumbers.Current,M,Atklist);
+            VC->update(&player[PlayersNumbers.Current],PlayersNumbers.Current,map,Atklist);
             VC->refresh();
 
             //Attack stuff
@@ -138,10 +144,10 @@ int Game::gameLoop(){
                 case -1:
                     PlayersNumbers.Max--; // Reduce Max number of players
 
-                    Atklist.PlayerIsDied(p.at(PlayersNumbers.Current).getID()); // remove player from AtkList
-                    M->PlayerIsDead(p.at(PlayersNumbers.Current).getID()); //Add player to the dead list in Map
+                    Atklist.PlayerIsDied(player.at(PlayersNumbers.Current).getID()); // remove player from AtkList
+                    map->PlayerIsDead(player.at(PlayersNumbers.Current).getID()); //Add player to the dead list in Map
                         
-                    p.erase(p.begin() + PlayersNumbers.Current); // remove player from Vector
+                    player.erase(player.begin() + PlayersNumbers.Current); // remove player from Vector
                     if(PlayersNumbers.Current == PlayersNumbers.Max){ // if current player equal to max player (which doesn't exist)
                         PlayersNumbers.Current = 0; // reset to first player
                         EndRound = false;
@@ -171,12 +177,20 @@ void Game::StartGame(){
 
     PlayersNumbers.Current = 0; // setting current to 0
     PlayersNumbers.Max = numOfPlayer; // setting max to the number retruned
-    for(int i=0;i < PlayersNumbers.Max;i++){ // creating each player in vector<PLAYER> p
-        p.push_back(Player());
-        p[i].setID(i);
+    for(int i=0;i < PlayersNumbers.Max;i++){ // creating each player in vector<PLAYER> player
+        player.push_back(Player());
+        player[i].setID(i);
     }
 
-    M = make_shared<Map>(PlayersNumbers.Max); // giving each player a coordinate
+    AiNumbers.Current = 0;
+    AiNumbers.Max = numOfAi;
+    for(int i=0;i < AiNumbers.Max; i++){
+        ai.push_back(Player());
+        ai[i].setID(i+PlayersNumbers.Max);
+    }
+
+    map = make_shared<Map>(PlayersNumbers.Max,AiNumbers.Max); // giving each player a coordinate
+
 }
 
 /**
@@ -191,13 +205,13 @@ int Game::actionTaken(){
     //Inacts the respective response
     switch(choice1){
         case 0://add buildings
-            return p[PlayersNumbers.Current].increaseBuilding(VC->getCount(),choice2,VC->getWoodCost(),VC->getStoneCost(),VC->getIronCost(),VC->getFoodCost());
+            return player[PlayersNumbers.Current].increaseBuilding(VC->getCount(),choice2,VC->getWoodCost(),VC->getStoneCost(),VC->getIronCost(),VC->getFoodCost());
         break;
         case 1://upgrade buildings
-            return p[PlayersNumbers.Current].upgradeBuilding(VC->getCount(),choice2,VC->getWoodCost(),VC->getStoneCost(),VC->getIronCost(),VC->getFoodCost());
+            return player[PlayersNumbers.Current].upgradeBuilding(VC->getCount(),choice2,VC->getWoodCost(),VC->getStoneCost(),VC->getIronCost(),VC->getFoodCost());
         break;
         case 2://upgrade troops
-            return p[PlayersNumbers.Current].upgradeTroops(VC->getCount(),choice2,VC->getWoodCost(),VC->getStoneCost(),VC->getIronCost(),VC->getFoodCost()); 
+            return player[PlayersNumbers.Current].upgradeTroops(VC->getCount(),choice2,VC->getWoodCost(),VC->getStoneCost(),VC->getIronCost(),VC->getFoodCost()); 
         break;
             //these will always return false ^^^ (= 0)
 
@@ -231,13 +245,13 @@ bool Game::attackProtocal(){
     if(VC->getPlayerCount() == PlayersNumbers.Current){ // if same Player
         return false;
     }
-    if(p[PlayersNumbers.Current].troops[0]->getAmount() < VC->getArcherCount()){ // if more Archers then owned
+    if(player[PlayersNumbers.Current].troops[0]->getAmount() < VC->getArcherCount()){ // if more Archers then owned
         return false;
     }
-    if(p[PlayersNumbers.Current].troops[1]->getAmount() < VC->getKnightCount()){ // if more Knights then owned
+    if(player[PlayersNumbers.Current].troops[1]->getAmount() < VC->getKnightCount()){ // if more Knights then owned
         return false;
     }
-    if(p[PlayersNumbers.Current].troops[2]->getAmount() < VC->getDefenderCount()){ // if more Defenders then owned
+    if(player[PlayersNumbers.Current].troops[2]->getAmount() < VC->getDefenderCount()){ // if more Defenders then owned
         return false;
     }
     if(VC->getDefenderCount() == 0 && VC->getKnightCount() == 0 && VC->getArcherCount() == 0){ // if all Troops are 0
@@ -245,12 +259,12 @@ bool Game::attackProtocal(){
     }
     
     //Remove troops from Player
-    p[PlayersNumbers.Current].troops[0]->RemoveTroops(VC->getArcherCount());
-    p[PlayersNumbers.Current].troops[1]->RemoveTroops(VC->getKnightCount());
-    p[PlayersNumbers.Current].troops[2]->RemoveTroops(VC->getDefenderCount());
+    player[PlayersNumbers.Current].troops[0]->RemoveTroops(VC->getArcherCount());
+    player[PlayersNumbers.Current].troops[1]->RemoveTroops(VC->getKnightCount());
+    player[PlayersNumbers.Current].troops[2]->RemoveTroops(VC->getDefenderCount());
 
     //Set Attack in Atk-List
-    Atklist.createNewAttack(&p[PlayersNumbers.Current],M,VC->getPlayerCount(),PlayersNumbers.Current,VC->getArcherCount(),VC->getKnightCount(),VC->getDefenderCount(),VC->getAttackChoice());
+    Atklist.createNewAttack(&player[PlayersNumbers.Current],map,VC->getPlayerCount(),PlayersNumbers.Current,VC->getArcherCount(),VC->getKnightCount(),VC->getDefenderCount(),VC->getAttackChoice());
     return true; //return successful
 };
 
@@ -262,11 +276,11 @@ bool Game::attackProtocal(){
 void Game::menuLoop(int &whichMenuNum){
     do{
         //Update brefore start
-        VC->update(&p[PlayersNumbers.Current],PlayersNumbers.Current,M,Atklist);
+        VC->update(&player[PlayersNumbers.Current],PlayersNumbers.Current,map,Atklist);
         VC->refresh();
 
         while(whichMenuNum == -1){
-            VC->update(&p[PlayersNumbers.Current],PlayersNumbers.Current,M,Atklist);
+            VC->update(&player[PlayersNumbers.Current],PlayersNumbers.Current,map,Atklist);
             VC->refresh();   
             whichMenuNum = VC->getMenuMV();
         }
@@ -276,19 +290,19 @@ void Game::menuLoop(int &whichMenuNum){
         }
 
         while(whichMenuNum == -2){
-            VC->update(&p[PlayersNumbers.Current],PlayersNumbers.Current,M,Atklist);
+            VC->update(&player[PlayersNumbers.Current],PlayersNumbers.Current,map,Atklist);
             VC->refresh();
             whichMenuNum = VC->getSubMenuMV();
         }   
 
         if(whichMenuNum == -3){
-            VC->prepInputMenu(M);
+            VC->prepInputMenu(map);
         }
 
         while(whichMenuNum == -3){
-            VC->update(&p[PlayersNumbers.Current],PlayersNumbers.Current,M,Atklist);
+            VC->update(&player[PlayersNumbers.Current],PlayersNumbers.Current,map,Atklist);
             VC->refresh();
-            whichMenuNum = VC->getInputMenuMV(M);
+            whichMenuNum = VC->getInputMenuMV(map);
         }
                     
     }while(whichMenuNum < 0);
@@ -299,7 +313,7 @@ void Game::menuLoop(int &whichMenuNum){
  * 
  */
 void Game::endRound(){
-    p[PlayersNumbers.Current].RoundEnd();
+    player[PlayersNumbers.Current].RoundEnd();
 }
 
 /**
@@ -309,14 +323,14 @@ void Game::endRound(){
 void Game::CheckPlayersAlive(){
     for (size_t i = 0; i < PlayersNumbers.Max; i++)
     {
-        if(p[i].IsPlayerDead()){
+        if(player[i].IsPlayerDead()){
         
             PlayersNumbers.Max--;
 
-            Atklist.PlayerIsDied(p.at(i).getID());
-            M->PlayerIsDead(p.at(i).getID());
+            Atklist.PlayerIsDied(player.at(i).getID());
+            map->PlayerIsDead(player.at(i).getID());
                     
-            p.erase(p.begin() + i);
+            player.erase(player.begin() + i);
 
             if(PlayersNumbers.Current == PlayersNumbers.Max){
                 PlayersNumbers.Current = 0;   
@@ -327,14 +341,14 @@ void Game::CheckPlayersAlive(){
 }
 
 /**
- * @brief Finds Player with ID and returns their current int location in vector<PLAYER> p
+ * @brief Finds Player with ID and returns their current int location in vector<PLAYER> player
  * 
  * @param ID 
  * @return * int 
  */
 int Game::findPlayer(int ID){
-    for(int i=0; i < p.size(); i++){
-        if(p[i].getID() == ID){
+    for(int i=0; i < player.size(); i++){
+        if(player[i].getID() == ID){
             return i;
         }
     }
@@ -352,7 +366,7 @@ void Game::attackOnTitan(){
     int Damage = 0;
     shared_ptr<Holder> Attacker;
     do{
-        attackLog = Atklist.AmIBeingAttacked(p[PlayersNumbers.Current].getID()); //Check if the player is being attacked
+        attackLog = Atklist.AmIBeingAttacked(player[PlayersNumbers.Current].getID()); //Check if the player is being attacked
         if(attackLog != -1){ // if 0-n run attack
             choiceDefend = VC->StartAttack(Atklist.getAttack(attackLog)); // take defenders choice 
             Attacker = Atklist.getAttack(attackLog); // get the attack
@@ -392,10 +406,10 @@ void Game::attackOnTitan(){
             int AtkUnitAcc = (Attacker->troops[0]->getAcc()+Attacker->troops[1]->getAcc()+Attacker->troops[2]->getAcc())/3;
             int AtkUnitHealthRatio = (Attacker->troops[0]->getHealth()+Attacker->troops[1]->getHealth()+Attacker->troops[2]->getHealth())/3;
 
-            int DefUnitHealth = p[PlayersNumbers.Current].troops[0]->getHealth()*p[PlayersNumbers.Current].troops[0]->getAmount() + p[PlayersNumbers.Current].troops[1]->getHealth()*p[PlayersNumbers.Current].troops[1]->getAmount() + p[PlayersNumbers.Current].troops[2]->getHealth()*p[PlayersNumbers.Current].troops[2]->getAmount();
-            int DefUnitDamage = p[PlayersNumbers.Current].troops[0]->getDamage()*p[PlayersNumbers.Current].troops[0]->getAmount() + p[PlayersNumbers.Current].troops[1]->getDamage()*p[PlayersNumbers.Current].troops[1]->getAmount() + p[PlayersNumbers.Current].troops[2]->getDamage()*p[PlayersNumbers.Current].troops[2]->getAmount();
-            int DefUnitAcc = (p[PlayersNumbers.Current].troops[0]->getAcc()+p[PlayersNumbers.Current].troops[1]->getAcc()+p[PlayersNumbers.Current].troops[2]->getAcc())/3;
-            int DefUnitHealthRatio =(p[PlayersNumbers.Current].troops[0]->getHealth()+p[PlayersNumbers.Current].troops[1]->getHealth()+p[PlayersNumbers.Current].troops[2]->getHealth())/3;
+            int DefUnitHealth = player[PlayersNumbers.Current].troops[0]->getHealth()*player[PlayersNumbers.Current].troops[0]->getAmount() + player[PlayersNumbers.Current].troops[1]->getHealth()*player[PlayersNumbers.Current].troops[1]->getAmount() + player[PlayersNumbers.Current].troops[2]->getHealth()*player[PlayersNumbers.Current].troops[2]->getAmount();
+            int DefUnitDamage = player[PlayersNumbers.Current].troops[0]->getDamage()*player[PlayersNumbers.Current].troops[0]->getAmount() + player[PlayersNumbers.Current].troops[1]->getDamage()*player[PlayersNumbers.Current].troops[1]->getAmount() + player[PlayersNumbers.Current].troops[2]->getDamage()*player[PlayersNumbers.Current].troops[2]->getAmount();
+            int DefUnitAcc = (player[PlayersNumbers.Current].troops[0]->getAcc()+player[PlayersNumbers.Current].troops[1]->getAcc()+player[PlayersNumbers.Current].troops[2]->getAcc())/3;
+            int DefUnitHealthRatio =(player[PlayersNumbers.Current].troops[0]->getHealth()+player[PlayersNumbers.Current].troops[1]->getHealth()+player[PlayersNumbers.Current].troops[2]->getHealth())/3;
 
             //creating each bonus variable
             double AtkBonusSurvivalRate = 0;
@@ -499,7 +513,7 @@ void Game::attackOnTitan(){
             AtkLoot = round(AtkLoot);
             
             //check if the player died from takeing the damage
-            int alive = p[PlayersNumbers.Current].takeDamage((int)AtkUnitsLeft);
+            int alive = player[PlayersNumbers.Current].takeDamage((int)AtkUnitsLeft);
             
             //show the player
             vector<string> s;
@@ -521,17 +535,17 @@ void Game::attackOnTitan(){
             //give back the units to player1 (Attacker)
             while(AtkUnitsLeft > 0){
                 if(AtkUnitsLeft > 0 && Attacker->troops[0]->getAmount() !=0){
-                    p[playerPos1].troops[0]->add(1);
+                    player[playerPos1].troops[0]->add(1);
                     Attacker->troops[0]->RemoveTroops(1);
                     AtkUnitsLeft--;
                 }
                 if(AtkUnitsLeft > 0 && Attacker->troops[1]->getAmount() !=0){
-                    p[playerPos1].troops[1]->add(1);
+                    player[playerPos1].troops[1]->add(1);
                     Attacker->troops[1]->RemoveTroops(1);
                     AtkUnitsLeft--;
                 }
                 if(AtkUnitsLeft > 0 && Attacker->troops[2]->getAmount() !=0){
-                    p[playerPos1].troops[2]->add(1);
+                    player[playerPos1].troops[2]->add(1);
                     Attacker->troops[2]->RemoveTroops(1);
                     AtkUnitsLeft--;
                 }
@@ -544,19 +558,19 @@ void Game::attackOnTitan(){
             
             int playerPos2 = findPlayer(Attacker->toWhom);
             while(DefUnitsLeft > 0 ){
-                if(DefUnitsLeft > 0 && p[playerPos2].troops[0]->getAmount() != 0){
-                    p[playerPos2].troops[0]->RemoveTroops(1);
+                if(DefUnitsLeft > 0 && player[playerPos2].troops[0]->getAmount() != 0){
+                    player[playerPos2].troops[0]->RemoveTroops(1);
                     DefUnitsLeft--;
                 }
-                if(DefUnitsLeft > 0 && p[playerPos2].troops[1]->getAmount() != 0){
-                    p[playerPos2].troops[1]->RemoveTroops(1);
+                if(DefUnitsLeft > 0 && player[playerPos2].troops[1]->getAmount() != 0){
+                    player[playerPos2].troops[1]->RemoveTroops(1);
                     DefUnitsLeft--;
                 }
-                if(DefUnitsLeft > 0 && p[playerPos2].troops[2]->getAmount() != 0){
-                    p[playerPos2].troops[2]->RemoveTroops(1);
+                if(DefUnitsLeft > 0 && player[playerPos2].troops[2]->getAmount() != 0){
+                    player[playerPos2].troops[2]->RemoveTroops(1);
                     DefUnitsLeft--;
                 }
-                if(p[playerPos2].troops[2]->getAmount() == 0 && p[playerPos2].troops[1]->getAmount() == 0 && p[playerPos2].troops[0]->getAmount() == 0){
+                if(player[playerPos2].troops[2]->getAmount() == 0 && player[playerPos2].troops[1]->getAmount() == 0 && player[playerPos2].troops[0]->getAmount() == 0){
                     break;
                 }
             }
@@ -564,27 +578,27 @@ void Game::attackOnTitan(){
             
             //give the player the loot
             while(AtkLoot > 0){
-                if(AtkLoot > 0 && (p[playerPos2].getWood() > 0)){
-                    p[playerPos1].addOrRemoveWood(1,true);
-                    p[playerPos2].addOrRemoveWood(1,false);
+                if(AtkLoot > 0 && (player[playerPos2].getWood() > 0)){
+                    player[playerPos1].addOrRemoveWood(1,true);
+                    player[playerPos2].addOrRemoveWood(1,false);
                     AtkLoot--;
                 }
-                if(AtkLoot > 0 && (p[playerPos2].getStone() > 0)){
-                    p[playerPos1].addOrRemoveStone(1,true);
-                    p[playerPos2].addOrRemoveStone(1,false);
+                if(AtkLoot > 0 && (player[playerPos2].getStone() > 0)){
+                    player[playerPos1].addOrRemoveStone(1,true);
+                    player[playerPos2].addOrRemoveStone(1,false);
                     AtkLoot--;
                 }
-                if(AtkLoot > 0 && (p[playerPos2].getIron() > 0)){
-                    p[playerPos1].addOrRemoveIron(1,true);
-                    p[playerPos2].addOrRemoveIron(1,false);
+                if(AtkLoot > 0 && (player[playerPos2].getIron() > 0)){
+                    player[playerPos1].addOrRemoveIron(1,true);
+                    player[playerPos2].addOrRemoveIron(1,false);
                     AtkLoot--;
                 }
-                if(AtkLoot > 0 && (p[playerPos2].getFood() > 0)){
-                    p[playerPos1].addOrRemoveFood(1,true);
-                    p[playerPos2].addOrRemoveFood(1,false);
+                if(AtkLoot > 0 && (player[playerPos2].getFood() > 0)){
+                    player[playerPos1].addOrRemoveFood(1,true);
+                    player[playerPos2].addOrRemoveFood(1,false);
                     AtkLoot--;
                 }
-                if(p[playerPos2].getFood() == 0 &&  p[playerPos2].getIron() == 0 && p[playerPos2].getStone() == 0 && p[playerPos2].getWood() == 0){
+                if(player[playerPos2].getFood() == 0 &&  player[playerPos2].getIron() == 0 && player[playerPos2].getStone() == 0 && player[playerPos2].getWood() == 0){
                     break;
                 }
             }
@@ -595,12 +609,30 @@ void Game::attackOnTitan(){
 
             //if the player died remove all attacks related to him
             if(alive == -1){
-                Atklist.PlayerIsDied(p[PlayersNumbers.Current].getID());
+                Atklist.PlayerIsDied(player[PlayersNumbers.Current].getID());
             }
         }
 
     }while(attackLog != -1);
     return;
+}
+
+/**
+ * @brief Rolls the creadits for who ever wins
+ * 
+ */
+void Game::gameCredits(){
+    vector<string> endmsg;
+    endmsg.push_back("   CONGRAGULATIONS YOU WIN!");
+    endmsg.push_back("You the last one standing Player ");
+    endmsg[1] += std::to_string(player[PlayersNumbers.Current].getID());
+    endmsg.push_back("With ");
+    endmsg[2] += std::to_string(player[PlayersNumbers.Current].getHP());
+    endmsg[2] += " health remaining";
+    endmsg.push_back("The game was Made by Jacob Deguara");
+    endmsg.push_back("I Hope you liked it!");
+
+    VC->sendMsg(endmsg);
 }
 
 #endif

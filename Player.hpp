@@ -44,6 +44,7 @@ public:
     int getStone();
     int getFood();
     int getResSize();
+    int getHP();
 
     int RoundEnd();
     int takeDamage(int hp);
@@ -162,7 +163,21 @@ int Player::RoundEnd()
     troops[0]->add(buildings[4]->getGen());
     troops[1]->add(buildings[5]->getGen());
     troops[2]->add(buildings[6]->getGen());
+
+    health += 2;
+    if(health > 50){
+        health = 50;
+    }
     return 1;   
+}
+
+/**
+ * @brief returns the Hp
+ * 
+ * @return int 
+ */
+int Player::getHP(){
+    return health;
 }
 
 /**

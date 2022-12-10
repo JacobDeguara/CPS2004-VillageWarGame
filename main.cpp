@@ -16,7 +16,7 @@ int main(void){
     Game * m = new Game();
     
     m->gameLoop();
-
+    m->gameCredits();
     endwin();
     cout << " " <<endl;
     delete m;
