@@ -25,11 +25,11 @@ private:
     
     //The amount of resources the player has
     struct{
-        int wood =999;
-        int stone =999;
-        int iron =999;
-        int food =999;
-        int size = 4;
+        int wood =15;
+        int stone =15;
+        int iron =15;
+        int food =7;
+        int size =4;
     }res;
 
 public:
